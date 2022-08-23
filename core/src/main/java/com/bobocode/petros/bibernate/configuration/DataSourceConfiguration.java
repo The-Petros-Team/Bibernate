@@ -1,6 +1,6 @@
 package com.bobocode.petros.bibernate.configuration;
 
-public interface ConnectionConfiguration {
+public interface DataSourceConfiguration {
 
     String getUrl();
 
