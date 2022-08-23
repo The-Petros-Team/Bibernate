@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>core</module>
+        <module>bibernate-core</module>
         <module>bibernate-examples</module>
     </modules>
 
