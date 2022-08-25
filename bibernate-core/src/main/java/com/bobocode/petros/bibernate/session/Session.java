@@ -20,4 +20,6 @@ public interface Session {
 
     Transaction getTransaction();
 
+    void close();
+
 }

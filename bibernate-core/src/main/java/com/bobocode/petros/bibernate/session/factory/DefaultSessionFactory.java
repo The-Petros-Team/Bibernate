@@ -2,8 +2,10 @@ package com.bobocode.petros.bibernate.session.factory;
 
 import com.bobocode.petros.bibernate.configuration.DataSourceConfiguration;
 import com.bobocode.petros.bibernate.exceptions.MappingViolationException;
+import com.bobocode.petros.bibernate.session.CacheableSession;
 import com.bobocode.petros.bibernate.session.Session;
-import com.bobocode.petros.bibernate.session.SessionImpl;
+import com.bobocode.petros.bibernate.session.jdbc.DefaultJdbcQueryManager;
+import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.session.validation.EntityMappingValidator;
 import com.bobocode.petros.bibernate.session.validation.MappingViolationResult;
 
@@ -16,6 +18,7 @@ import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.MAPPING
 public class DefaultSessionFactory implements SessionFactory {
 
     private final DataSource dataSource;
+    private final JdbcQueryManager jdbcQueryManager;
 
     public DefaultSessionFactory(DataSource dataSource, Set<String> entityPackages) {
         Objects.requireNonNull(dataSource, "Parameter [dataSource] must be provided!");
@@ -25,6 +28,7 @@ public class DefaultSessionFactory implements SessionFactory {
         if (!violations.isEmpty()) {
             throw new MappingViolationException(String.format(MAPPING_VIOLATION_MESSAGE, violations.size(), violations));
         }
+        this.jdbcQueryManager = new DefaultJdbcQueryManager(dataSource);
     }
 
     public DefaultSessionFactory(DataSourceConfiguration configuration, Set<String> entityPackages) {
@@ -33,6 +37,6 @@ public class DefaultSessionFactory implements SessionFactory {
 
     @Override
     public Session openSession() {
-        return new SessionImpl(dataSource);
+        return new CacheableSession(dataSource, jdbcQueryManager);
     }
 }

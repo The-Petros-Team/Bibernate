@@ -1,15 +1,18 @@
 package com.bobocode.petros.bibernate.session;
 
+import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 
 import javax.sql.DataSource;
 
-public class SessionImpl implements Session {
+public class DefaultSession implements Session {
 
     private final DataSource dataSource;
+    private final JdbcQueryManager jdbcQueryManager;
 
-    public SessionImpl(final DataSource dataSource) {
+    public DefaultSession(final DataSource dataSource, final JdbcQueryManager jdbcQueryManager) {
         this.dataSource = dataSource;
+        this.jdbcQueryManager = jdbcQueryManager;
     }
 
     @Override
@@ -50,5 +53,10 @@ public class SessionImpl implements Session {
     @Override
     public Transaction getTransaction() {
         return null;
+    }
+
+    @Override
+    public void close() {
+
     }
 }

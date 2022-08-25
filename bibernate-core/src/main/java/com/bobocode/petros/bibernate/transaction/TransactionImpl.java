@@ -16,4 +16,9 @@ public class TransactionImpl implements Transaction {
     public void rollback() {
 
     }
+
+    @Override
+    public boolean isClosed() {
+        return false;
+    }
 }

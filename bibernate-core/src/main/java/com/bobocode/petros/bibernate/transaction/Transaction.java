@@ -8,4 +8,5 @@ public interface Transaction {
 
     void rollback();
 
+    boolean isClosed();
 }
