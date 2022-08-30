@@ -8,6 +8,8 @@ public interface Session {
 
     <T, ID> T findById(Class<T> type, ID id);
 
+    <T> T find(Class<T> type, String propertyName, Object value);
+
     <T> T update(T entity);
 
     <ID> void deleteById(ID id);
