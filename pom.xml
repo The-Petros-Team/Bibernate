@@ -26,6 +26,8 @@
         <maven-pmd-plugin.version>3.15.0</maven-pmd-plugin.version>
         <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
         <checkstyle.version>10.3.2</checkstyle.version>
+        <slf4j-api.version>1.7.36</slf4j-api.version>
+        <logback-classic.version>1.2.11</logback-classic.version>
     </properties>
 
     <dependencies>
@@ -43,6 +45,21 @@
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
             <version>${checkstyle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.30</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic.version}</version>
         </dependency>
     </dependencies>
 
