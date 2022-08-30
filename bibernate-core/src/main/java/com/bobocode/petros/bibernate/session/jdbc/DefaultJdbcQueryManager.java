@@ -1,9 +1,10 @@
 package com.bobocode.petros.bibernate.session.jdbc;
 
+import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 
 import javax.sql.DataSource;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 
 public class DefaultJdbcQueryManager implements JdbcQueryManager {
@@ -21,7 +22,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     }
 
     @Override
-    public <T> T find(Class<T> type, Map<String, Object> parameters) {
+    public <T> T find(Class<T> type, List<Restriction> restrictions) {
         return null;
     }
 

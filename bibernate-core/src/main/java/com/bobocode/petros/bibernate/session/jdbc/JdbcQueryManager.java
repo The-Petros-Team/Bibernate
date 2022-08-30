@@ -1,14 +1,15 @@
 package com.bobocode.petros.bibernate.session.jdbc;
 
+import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 
-import java.util.Map;
+import java.util.List;
 
 public interface JdbcQueryManager {
 
     <T> T persist(T entity);
 
-    <T> T find(Class<T> type, Map<String, Object> parameters);
+    <T> T find(Class<T> type, List<Restriction> restrictions);
 
     <T> T update(T entity);
 
