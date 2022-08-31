@@ -26,6 +26,11 @@ public class DefaultSession implements Session {
     }
 
     @Override
+    public <T> T find(Class<T> type, String propertyName, Object value) {
+        return null;
+    }
+
+    @Override
     public <T> T update(T entity) {
         return null;
     }

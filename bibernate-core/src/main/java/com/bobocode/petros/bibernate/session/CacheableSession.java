@@ -26,6 +26,11 @@ public class CacheableSession extends DefaultSession {
     }
 
     @Override
+    public <T> T find(Class<T> type, String propertyName, Object value) {
+        return null;
+    }
+
+    @Override
     public <T> T update(T entity) {
         return super.update(entity);
     }

@@ -54,7 +54,7 @@ public class QueryBuilder {
                         EntityUtils.sortEntityFieldsSkipPK(entityClass)
                 );
                 final String columns = String.join(",", columnNames);
-                sql = String.format(INSERT, tableName, columns, EntityUtils.getMappedQueryValues(columnNames));
+                sql = String.format(INSERT, tableName, columns, EntityUtils.getQueryArguments(columnNames));
             }
             case SELECT -> {
                 String conditions = EntityUtils.getMappedQueryConditions(restrictions);
