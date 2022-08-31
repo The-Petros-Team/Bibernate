@@ -47,7 +47,7 @@ public class EntityUtils {
         return elements.stream().map(col -> "?").collect(Collectors.joining(","));
     }
 
-    public <T> List<Field> sortEntityFields(final Class<T> entityClass) {
+    public <T> List<Field> sortEntityFieldsSkipPK(final Class<T> entityClass) {
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(Predicate.not(f -> f.isAnnotationPresent(Id.class)))
                 .sorted(Comparator.comparing(Field::getName))
@@ -134,6 +134,23 @@ public class EntityUtils {
                 || (value instanceof LocalDateTime);
     }
 
+    public <T> String getMappedQueryColumns(final Class<T> entityClass, final boolean primaryKeyOnly) {
+        if (primaryKeyOnly) {
+            return EntityUtils.getColumnName(EntityUtils.getIdField(entityClass)) + " = ?";
+        } else {
+            return Arrays.stream(entityClass.getDeclaredFields())
+                    .filter(f -> !f.isAnnotationPresent(Id.class))
+                    .map(EntityUtils::getColumnName)
+                    .map(column -> column + " = ?")
+                    .collect(Collectors.joining(", "));
+        }
+    }
+
+    /**
+     *
+     * @param className
+     * @return
+     */
     private String createTableNameFromClass(final String className) {
         return className.substring(0, 1).toLowerCase() + className.substring(1);
     }
