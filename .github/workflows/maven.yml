@@ -13,6 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: docker-practice/actions-setup-docker@master
       - uses: actions/checkout@v3
       - name: Set up JDK 17
         uses: actions/setup-java@v3
