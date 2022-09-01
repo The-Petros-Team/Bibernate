@@ -30,11 +30,11 @@ public class StatementUtils {
                                                         final List<Restriction> restrictions) {
         if (!restrictions.isEmpty()) {
             final List<Field> fields = EntityUtils.sortEntityFieldsSkipPK(entityClass);
-            int magicNumber = 1;
+            int columnNumber = 1;
             for (final Restriction restriction : restrictions) {
                 if (fields.stream().anyMatch(f -> f.getName().equals(restriction.getPropertyName()))) {
                     try {
-                        statement.setObject(magicNumber++, restriction.getValue());
+                        statement.setObject(columnNumber++, restriction.getValue());
                     } catch (SQLException e) {
                         throw new JdbcOperationException(e.getMessage(), e);
                     }
@@ -54,11 +54,11 @@ public class StatementUtils {
      */
     public <T> PreparedStatement prepareInsertStatement(final PreparedStatement statement, final T entity) {
         final List<Field> fields = EntityUtils.sortEntityFieldsSkipPK(entity.getClass());
-        int magicNumber = 1;
+        int columnNumber = 1;
         for (final Field field : fields) {
             field.setAccessible(true);
             try {
-                statement.setObject(magicNumber++, field.get(entity));
+                statement.setObject(columnNumber++, field.get(entity));
             } catch (SQLException | IllegalAccessException e) {
                 throw new JdbcOperationException(e.getMessage(), e);
             }
@@ -76,15 +76,15 @@ public class StatementUtils {
      */
     public <T> PreparedStatement prepareUpdateStatement(final PreparedStatement statement, final T entity) {
         final List<Field> fields = EntityUtils.sortEntityFieldsSkipPK(entity.getClass());
-        int magicNumber = 1;
+        int columnNumber = 1;
         try {
             for (final Field field : fields) {
                 field.setAccessible(true);
-                statement.setObject(magicNumber++, field.get(entity));
+                statement.setObject(columnNumber++, field.get(entity));
             }
             final Field idField = EntityUtils.getIdField(entity.getClass());
             idField.setAccessible(true);
-            statement.setObject(magicNumber, idField.get(entity));
+            statement.setObject(columnNumber, idField.get(entity));
             return statement;
         } catch (SQLException | IllegalAccessException e) {
             throw new JdbcOperationException(e.getMessage(), e);
@@ -98,16 +98,15 @@ public class StatementUtils {
      * @param entityClass entity class
      * @param id          id (primary key)
      * @param <T>         generic type
-     * @param <ID>        type of entity primary key
      * @return {@link PreparedStatement} with all parameters set
      */
-    public <T, ID> PreparedStatement prepareDeleteStatement(final PreparedStatement statement,
-                                                            final Class<T> entityClass,
-                                                            final ID id) {
+    public <T> PreparedStatement prepareDeleteStatement(final PreparedStatement statement,
+                                                        final Class<T> entityClass,
+                                                        final Object id) {
         EntityUtils.getIdField(entityClass);
-        int magicNumber = 1;
+        int columnNumber = 1;
         try {
-            statement.setObject(magicNumber, id);
+            statement.setObject(columnNumber, id);
             return statement;
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);

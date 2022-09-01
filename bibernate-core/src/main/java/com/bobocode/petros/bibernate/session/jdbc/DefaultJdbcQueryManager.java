@@ -71,11 +71,10 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
      * @param type         class of an entity to search for
      * @param restrictions applicable restrictions
      * @param <T>          generic type
-     * @param <C>          collection of type T
      * @return collection of entities
      */
     @Override
-    public <T, C extends Collection<T>> C find(final Class<T> type, final List<Restriction> restrictions) {
+    public <T> Collection<T> find(final Class<T> type, final List<Restriction> restrictions) {
         Objects.requireNonNull(type, "Parameter [type] must not be null!");
         Objects.requireNonNull(restrictions, "Parameter [restrictions] must not be null!");
         final String sql = QueryBuilder.buildQuery(type, QueryType.SELECT, restrictions);
@@ -83,8 +82,8 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
              final PreparedStatement statement = StatementUtils.prepareSelectStatement(connection.prepareStatement(sql), type, restrictions)) {
             final ResultSet resultSet = statement.executeQuery();
             final QueryResult queryResult = EntityUtils.getQueryResult(resultSet, type);
-            final C result = queryResult.isSingle() ? queryResult.wrap(queryResult.getSingleResult()) :
-                    queryResult.isMulti() ? queryResult.getResultList() : (C) Collections.emptyList();
+            final Collection<T> result = queryResult.isSingle() ? queryResult.wrap(queryResult.getSingleResult()) :
+                    queryResult.isMulti() ? queryResult.getResultList() : Collections.emptyList();
             log.debug("Query: '{}', result: {}", sql, result);
             return result;
         } catch (SQLException e) {
@@ -106,7 +105,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
         try (final Connection connection = this.dataSource.getConnection();
              final PreparedStatement statement = StatementUtils.prepareUpdateStatement(connection.prepareStatement(sql), entity)) {
             final int rowsUpdated = statement.executeUpdate();
-            log.debug("Updated '{}' rows for query {}", rowsUpdated, sql);
+            log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
             return entity;
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);
@@ -137,16 +136,15 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
      * @param type entity type
      * @param id   id (primary key)
      * @param <T>  generic type
-     * @param <ID> primary key type of the given entity
      */
     @Override
-    public <T, ID> void deleteById(final Class<T> type, final ID id) {
+    public <T> void deleteById(final Class<T> type, final Object id) {
         Objects.requireNonNull(id, "Parameter [id] must not be null!");
         final String sql = QueryBuilder.buildQuery(type, QueryType.DELETE, Collections.emptyList());
         try (final Connection connection = this.dataSource.getConnection();
              final PreparedStatement statement = StatementUtils.prepareDeleteStatement(connection.prepareStatement(sql), type, id)) {
             final int rowsUpdated = statement.executeUpdate();
-            log.debug("Updated '{}' rows for query {}", rowsUpdated, sql);
+            log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);
         }

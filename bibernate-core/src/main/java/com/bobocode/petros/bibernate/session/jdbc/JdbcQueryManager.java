@@ -29,10 +29,9 @@ public interface JdbcQueryManager {
      * @param type         class of an entity to search for
      * @param restrictions applicable restrictions
      * @param <T>          generic type
-     * @param <C>          collection of type T
      * @return collection of entities
      */
-    <T, C extends Collection<T>> C find(Class<T> type, List<Restriction> restrictions);
+    <T> Collection<T> find(Class<T> type, List<Restriction> restrictions);
 
     /**
      * Updates a given entity.
@@ -57,9 +56,8 @@ public interface JdbcQueryManager {
      * @param type entity type
      * @param id   id (primary key)
      * @param <T>  generic type
-     * @param <ID> primary key type of the given entity
      */
-    <T, ID> void deleteById(Class<T> type, ID id);
+    <T> void deleteById(Class<T> type, Object id);
 
     /**
      * Allows to manually handle operations over the database records. Has autoCommit value set to false.
