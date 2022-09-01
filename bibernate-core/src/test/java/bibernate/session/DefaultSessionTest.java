@@ -4,8 +4,6 @@ import bibernate.session.mocks.User;
 import com.bobocode.petros.bibernate.session.DefaultSession;
 import com.bobocode.petros.bibernate.session.Session;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
-import com.bobocode.petros.bibernate.session.query.condition.Restriction;
-import com.bobocode.petros.bibernate.session.query.condition.Restrictions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,11 +12,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class DefaultSessionTest {
@@ -27,78 +22,52 @@ public class DefaultSessionTest {
     private DataSource dataSource;
     @Mock
     private JdbcQueryManager jdbcQueryManager;
-    private Session session;
+    @Mock
     private User user;
-    private User updatedUser;
-    private User persistUser;
+    private Session session;
 
     @BeforeEach
     private void init() {
         MockitoAnnotations.openMocks(this);
-        setUpUserInstances();
-        stubbingMock();
+        jdbcQueryManager = mock(JdbcQueryManager.class);
         session = new DefaultSession(dataSource, jdbcQueryManager);
     }
 
-    private void setUpUserInstances() {
-        user = new User();
-        user.setName("Kirill Kotenok");
-        user.setEmail("some@some");
+    @Test
+    void whenPersistEntityThenCallMethodPersistIntoJdbcQueryManager() {
+        session.persist(user);
 
-        persistUser = new User();
-        persistUser.setId(1L);
-        persistUser.setName("Kirill Kotenok");
-        persistUser.setEmail("some@some");
-
-        updatedUser = new User();
-        updatedUser.setId(1L);
-        updatedUser.setName("Kirill Kotenok");
-        updatedUser.setEmail("changed@email");
-    }
-
-    private void stubbingMock() {
-        jdbcQueryManager = mock(JdbcQueryManager.class);
-
-        lenient().when(jdbcQueryManager.persist(user)).thenReturn(persistUser);
-        lenient().when(jdbcQueryManager.update(updatedUser)).thenReturn(updatedUser);
-        lenient().when(jdbcQueryManager.find(User.class, List.of(Restrictions.idEq("id", 1L))))
-                .thenReturn(persistUser);
+        verify(jdbcQueryManager, times(1)).persist(user);
+        verifyNoMoreInteractions(jdbcQueryManager);
     }
 
     @Test
-    void whenPersistEntityThenReturnEntityWithId() {
-        var userFromDb = session.persist(user);
-        assertAll(
-                () -> assertNotNull(user),
-                () -> assertNotNull(userFromDb),
-                () -> assertNotNull(userFromDb.getId()),
-                () -> assertEquals(userFromDb, persistUser),
-                () -> assertEquals(persistUser.getName(), user.getName()),
-                () -> assertEquals(persistUser.getEmail(), user.getEmail()));
+    void whenUpdateEntityThenCallMethodUpdateIntoJdbcQueryManager() {
+        session.update(user);
+
+        verify(jdbcQueryManager, times(1)).update(user);
+        verifyNoMoreInteractions(jdbcQueryManager);
     }
 
     @Test
-    void whenUpdateEntityThenPushChangeToDbAndReturnUpdatedEntity() {
-        var updated = session.update(updatedUser);
+    void whenFindEntityByIdThenCallMethodFindIntoJdbcQueryManager() {
+        session.findById(User.class, 1L);
 
-        assertAll(
-                () -> assertNotNull(updated),
-                () -> assertNotNull(updatedUser),
-                () -> assertEquals(updated, updatedUser),
-                () -> assertEquals(updated.getName(), updatedUser.getName()),
-                () -> assertEquals(updatedUser.getEmail(), updated.getEmail()),
-                () -> assertEquals(updated.getId(), updatedUser.getId()));
+        verify(jdbcQueryManager, times(1)).find(any(), any());
+        verifyNoMoreInteractions(jdbcQueryManager);
     }
 
     @Test
-    void whenFindEntityByIdThenReturnPersistEntity() {
-        var findUser = session.findById(User.class, 1L);
+    void whenDeleteEntityThenCallMethodDeleteIntoJdbcQueryManager(){
+        Long id = 1L;
+        session.delete(user);
 
-        assertAll(
-                () -> assertNotNull(findUser),
-                () -> assertEquals(findUser, user),
-                () -> assertEquals(findUser.getId(), 1L),
-                () -> assertEquals(findUser, persistUser)
-        );
+        verify(jdbcQueryManager, times(1)).delete(any(),any());
+        verifyNoMoreInteractions(jdbcQueryManager);
+
+        session.deleteById(id);
+
+        verify(jdbcQueryManager, times(1)).deleteById(id);
+        verifyNoMoreInteractions(jdbcQueryManager);
     }
 }

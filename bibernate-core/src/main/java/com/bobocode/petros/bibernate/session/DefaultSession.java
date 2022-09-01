@@ -1,13 +1,11 @@
 package com.bobocode.petros.bibernate.session;
 
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
-import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.session.query.condition.Restrictions;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 
 import javax.sql.DataSource;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultSession implements Session {
 
@@ -51,21 +49,21 @@ public class DefaultSession implements Session {
 
     @Override
     public <T> Query<T> createQuery(String sql) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> Query<T> createQuery(String sql, Class<T> type) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Transaction getTransaction() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void close() {
-
+        throw new UnsupportedOperationException();
     }
 }
