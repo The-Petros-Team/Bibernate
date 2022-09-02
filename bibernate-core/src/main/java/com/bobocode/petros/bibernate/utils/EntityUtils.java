@@ -235,6 +235,7 @@ public class EntityUtils {
             return Arrays.stream(entityClass.getDeclaredFields())
                     .filter(f -> !f.isAnnotationPresent(Id.class))
                     .map(EntityUtils::getColumnName)
+                    .sorted()
                     .map(column -> column + " = ?")
                     .collect(Collectors.joining(", "));
         }

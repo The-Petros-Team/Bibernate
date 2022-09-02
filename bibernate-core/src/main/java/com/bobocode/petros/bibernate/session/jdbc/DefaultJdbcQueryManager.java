@@ -5,9 +5,11 @@ import com.bobocode.petros.bibernate.session.query.QueryBuilder;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.session.query.enums.QueryType;
+import com.bobocode.petros.bibernate.session.statement.strategy.resolver.StatementStrategyResolver;
+import com.bobocode.petros.bibernate.session.statement.strategy.resolver.StrategyResolver;
+import com.bobocode.petros.bibernate.session.statement.strategy.config.StatementConfigurationOptions;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
-import com.bobocode.petros.bibernate.utils.StatementUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
@@ -21,8 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static java.sql.PreparedStatement.RETURN_GENERATED_KEYS;
-
 /**
  * Implementation of {@link JdbcQueryManager}.
  */
@@ -32,10 +32,12 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     private static final String GENERATED_KEY = "GENERATED_KEY";
 
     private final DataSource dataSource;
+    private final StrategyResolver strategyResolver;
 
     public DefaultJdbcQueryManager(final DataSource dataSource) {
         Objects.requireNonNull(dataSource, "Parameter [dataSource] must not be null!");
         this.dataSource = dataSource;
+        this.strategyResolver = StatementStrategyResolver.getInstance();
     }
 
     /**
@@ -49,8 +51,12 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     public <T> T persist(final T entity) {
         Objects.requireNonNull(entity, "Parameter [entity] must not be null!");
         final String sql = QueryBuilder.buildQuery(entity.getClass(), QueryType.INSERT, Collections.emptyList());
+        final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
+                .entity(entity)
+                .entityClass(entity.getClass())
+                .build();
         try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = StatementUtils.prepareInsertStatement(connection.prepareStatement(sql, RETURN_GENERATED_KEYS), entity)) {
+             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
             statement.executeUpdate();
             final ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -78,8 +84,12 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
         Objects.requireNonNull(type, "Parameter [type] must not be null!");
         Objects.requireNonNull(restrictions, "Parameter [restrictions] must not be null!");
         final String sql = QueryBuilder.buildQuery(type, QueryType.SELECT, restrictions);
+        final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
+                .entityClass(type)
+                .restrictions(restrictions)
+                .build();
         try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = StatementUtils.prepareSelectStatement(connection.prepareStatement(sql), type, restrictions)) {
+             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.SELECT, connection, sql, configOptions)) {
             final ResultSet resultSet = statement.executeQuery();
             final QueryResult queryResult = EntityUtils.getQueryResult(resultSet, type);
             final Collection<T> result = queryResult.isSingle() ? queryResult.wrap(queryResult.getSingleResult()) :
@@ -102,8 +112,12 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     public <T> T update(final T entity) {
         Objects.requireNonNull(entity, "Parameter [entity] must not be null!");
         final String sql = QueryBuilder.buildQuery(entity.getClass(), QueryType.UPDATE, Collections.emptyList());
+        final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
+                .entity(entity)
+                .entityClass(entity.getClass())
+                .build();
         try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = StatementUtils.prepareUpdateStatement(connection.prepareStatement(sql), entity)) {
+             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.UPDATE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
             return entity;
@@ -141,8 +155,12 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     public <T> void deleteById(final Class<T> type, final Object id) {
         Objects.requireNonNull(id, "Parameter [id] must not be null!");
         final String sql = QueryBuilder.buildQuery(type, QueryType.DELETE, Collections.emptyList());
+        final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
+                .entityClass(type)
+                .id(id)
+                .build();
         try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = StatementUtils.prepareDeleteStatement(connection.prepareStatement(sql), type, id)) {
+             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.DELETE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
         } catch (SQLException e) {
