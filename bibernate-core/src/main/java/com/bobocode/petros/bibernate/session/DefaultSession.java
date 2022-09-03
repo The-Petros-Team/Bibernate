@@ -3,6 +3,7 @@ package com.bobocode.petros.bibernate.session;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.session.query.condition.Restrictions;
 import com.bobocode.petros.bibernate.transaction.Transaction;
+import com.bobocode.petros.bibernate.utils.EntityUtils;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -24,7 +25,7 @@ public class DefaultSession implements Session {
 
     @Override
     public <T, ID> T findById(Class<T> type, ID id) {
-        return jdbcQueryManager.find(type, List.of(Restrictions.idEq("id", id)));
+        return jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
     }
 
     @Override
