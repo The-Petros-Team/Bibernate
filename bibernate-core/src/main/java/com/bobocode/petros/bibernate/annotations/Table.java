@@ -13,4 +13,5 @@ public @interface Table {
     String name();
 
     String schema() default "";
+
 }
