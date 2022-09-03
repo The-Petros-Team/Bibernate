@@ -25,14 +25,16 @@ public class DefaultSession implements Session {
 
     @Override
     public <T> T findById(Class<T> type, Object id) {
-        jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
-        return null;
+        return jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)))
+                .iterator()
+                .next();
     }
 
     @Override
     public <T> T find(Class<T> type, String propertyName, Object value) {
-        jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
-        return null;
+        return jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)))
+                .iterator()
+                .next();
     }
 
     @Override
