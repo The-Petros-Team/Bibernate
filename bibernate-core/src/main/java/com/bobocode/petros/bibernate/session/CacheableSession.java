@@ -21,13 +21,13 @@ public class CacheableSession extends DefaultSession {
     }
 
     @Override
-    public <T, ID> T findById(Class<T> type, ID id) {
+    public <T> T findById(Class<T> type, Object id) {
         return super.findById(type, id);
     }
 
     @Override
     public <T> T find(Class<T> type, String propertyName, Object value) {
-        return null;
+        return super.find(type, propertyName, value);
     }
 
     @Override
@@ -36,8 +36,8 @@ public class CacheableSession extends DefaultSession {
     }
 
     @Override
-    public <ID> void deleteById(ID id) {
-        super.deleteById(id);
+    public <T> void deleteById(Class<T> type, Object id) {
+        super.deleteById(type, id);
     }
 
     @Override

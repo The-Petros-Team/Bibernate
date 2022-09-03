@@ -27,6 +27,12 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class EntityUtils {
 
+    /**
+     * Extracts field that is specified as primary key (id) for the specified entity class.
+     *
+     * @param entityClass entity class
+     * @return primary key field
+     */
     public Field getIdField(final Class<?> entityClass) {
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(Id.class))
@@ -34,55 +40,109 @@ public class EntityUtils {
                 .orElseThrow(() -> new NoEntityIdException(String.format("Entity class '%s' has no field marked with @Id", entityClass.getName())));
     }
 
+    /**
+     * Extracts column name for a specified field.
+     *
+     * @param field field that potentially has annotation {@link Column} put on it
+     * @return column name
+     */
     public String getColumnName(final Field field) {
         return Optional.ofNullable(field.getDeclaredAnnotation(Column.class))
                 .map(Column::name)
                 .orElseGet(field::getName);
     }
 
+    /**
+     * Extracts table name in a following format: schema.table_name.
+     *
+     * @param entityClass entity class
+     * @return table name
+     */
     public String getTableName(final Class<?> entityClass) {
         return Optional.ofNullable(entityClass.getDeclaredAnnotation(Table.class))
                 .map(t -> t.schema().isBlank() ? t.name() : t.schema() + "." + t.name())
                 .orElseGet(() -> createTableNameFromClass(entityClass.getSimpleName()));
     }
 
-    public String getMappedQueryValues(final List<?> elements) {
+    /**
+     * Transforms given elements to the char sequence of the following format: ?,?,?,? etc.
+     *
+     * @param elements elements
+     * @return mapped query args
+     */
+    public String getQueryArguments(final List<?> elements) {
         return elements.stream().map(col -> "?").collect(Collectors.joining(","));
     }
 
-    public <T> List<Field> sortEntityFields(final Class<T> entityClass) {
+    /**
+     * Returns sorted list of entity fields with id (primary key) field excluded.
+     *
+     * @param entityClass entity class
+     * @param <T>         generic type
+     * @return list of sorted fields
+     */
+    public <T> List<Field> sortEntityFieldsSkipPK(final Class<T> entityClass) {
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(Predicate.not(f -> f.isAnnotationPresent(Id.class)))
                 .sorted(Comparator.comparing(Field::getName))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Returns fields for a given entity.
+     *
+     * @param entityClass entity class
+     * @param <T>         generic type
+     * @return list of entity fields
+     */
     public <T> List<Field> getEntityFields(final Class<T> entityClass) {
         return Arrays.stream(entityClass.getDeclaredFields()).collect(Collectors.toList());
     }
 
+    /**
+     * Collects column names for the given entity class as a string that has the following format:
+     * id,first_name,last_name etc.
+     *
+     * @param entityClass entity class
+     * @param <T>         generic type
+     * @return column names joined as a single string
+     */
     public <T> String getColumnNames(final Class<T> entityClass) {
         return getEntityFields(entityClass).stream()
                 .map(EntityUtils::getColumnName)
                 .collect(Collectors.joining(","));
     }
 
+    /**
+     * Returns column names mapped to a list.
+     *
+     * @param fields entity fields
+     * @return list of column names
+     */
     public List<String> getColumnNames(final List<Field> fields) {
         return fields.stream()
                 .map(EntityUtils::getColumnName)
                 .collect(Collectors.toList());
     }
 
-    public String getInClauseValues(final Collection<Object> values) {
-        return values.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(","));
-    }
-
+    /**
+     * Maps expressions from the given list of restrictions to a single string.
+     *
+     * @param restrictions restrictions
+     * @return mapped query conditions
+     */
     public String getMappedQueryConditions(final List<Restriction> restrictions) {
         return restrictions.stream().map(Restriction::getExpression).collect(Collectors.joining(" "));
     }
 
+    /**
+     * Wraps result received from {@link ResultSet} to {@link QueryResult}.
+     *
+     * @param resultSet   result set
+     * @param entityClass entity class
+     * @param <T>         generic type
+     * @return query result
+     */
     public <T> QueryResult getQueryResult(final ResultSet resultSet, final Class<T> entityClass) {
         final QueryResult queryResult = new QueryResult();
         final List<Object> results = queryResult.getResults();
@@ -107,6 +167,14 @@ public class EntityUtils {
         }
     }
 
+    /**
+     * Sets the value to field for a given entity.
+     *
+     * @param field  field
+     * @param entity entity
+     * @param value  value
+     * @param <T>    generic type
+     */
     public <T> void setField(final Field field, final T entity, final Object value) {
         try {
             field.setAccessible(true);
@@ -116,6 +184,15 @@ public class EntityUtils {
         }
     }
 
+    /**
+     * Constructs an expression for a given template.
+     *
+     * @param template     template
+     * @param propertyName property name
+     * @param sqlOperator  sql operator
+     * @param value        value
+     * @return expression that is ready to use
+     */
     public String getQueryExpression(final String template,
                                      final String propertyName,
                                      final String sqlOperator,
@@ -130,6 +207,12 @@ public class EntityUtils {
         return String.format(template, propertyName, sqlOperator, remappedValue == null ? value : remappedValue);
     }
 
+    /**
+     * Checks whether a given object is an instance of one of the given classes.
+     *
+     * @param value value to check
+     * @return true if value is instance of the predefined classes
+     */
     private boolean isDate(final Object value) {
         return (value instanceof java.util.Date)
                 || (value instanceof LocalDate)
@@ -137,6 +220,33 @@ public class EntityUtils {
                 || (value instanceof LocalDateTime);
     }
 
+    /**
+     * Maps column names to a following format: field_name_1 = ?, field_name_2 = ?
+     *
+     * @param entityClass    entity class
+     * @param primaryKeyOnly restricts mapping to a single field - id (primary key)
+     * @param <T> generic type
+     * @return string of the format above
+     */
+    public <T> String getMappedQueryColumns(final Class<T> entityClass, final boolean primaryKeyOnly) {
+        if (primaryKeyOnly) {
+            return EntityUtils.getColumnName(EntityUtils.getIdField(entityClass)) + " = ?";
+        } else {
+            return Arrays.stream(entityClass.getDeclaredFields())
+                    .filter(f -> !f.isAnnotationPresent(Id.class))
+                    .map(EntityUtils::getColumnName)
+                    .sorted()
+                    .map(column -> column + " = ?")
+                    .collect(Collectors.joining(", "));
+        }
+    }
+
+    /**
+     * Creates table name from a given class name.
+     *
+     * @param className class name
+     * @return formatted table name
+     */
     private String createTableNameFromClass(final String className) {
         return className.substring(0, 1).toLowerCase() + className.substring(1);
     }
