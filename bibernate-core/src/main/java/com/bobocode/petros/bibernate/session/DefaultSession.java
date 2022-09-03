@@ -6,6 +6,7 @@ import com.bobocode.petros.bibernate.transaction.Transaction;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 
 import javax.sql.DataSource;
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultSession implements Session {
@@ -24,13 +25,15 @@ public class DefaultSession implements Session {
     }
 
     @Override
-    public <T, ID> T findById(Class<T> type, ID id) {
-        return jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
+    public <T> T findById(Class<T> type, Object id) {
+        final Collection<T> resultCollection = jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
+        return resultCollection.isEmpty() ? null : resultCollection.iterator().next();
     }
 
     @Override
     public <T> T find(Class<T> type, String propertyName, Object value) {
-        return jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
+        final Collection<T> resultCollection = jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
+        return resultCollection.isEmpty() ? null : resultCollection.iterator().next();
     }
 
     @Override
@@ -39,13 +42,13 @@ public class DefaultSession implements Session {
     }
 
     @Override
-    public <ID> void deleteById(ID id) {
-        jdbcQueryManager.deleteById(id);
+    public <T> void deleteById(Class<T> type, Object id) {
+        jdbcQueryManager.deleteById(type, id);
     }
 
     @Override
     public <T> void delete(T entity) {
-        jdbcQueryManager.delete(entity.getClass(), entity);
+        jdbcQueryManager.delete(entity);
     }
 
     @Override

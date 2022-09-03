@@ -3,6 +3,9 @@ package com.bobocode.petros.bibernate.session.query.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Holds essential filtering criteria conditions and SQL keywords.
+ */
 @RequiredArgsConstructor
 public enum SqlOperator {
 
@@ -14,8 +17,6 @@ public enum SqlOperator {
     AND("AND"),
     OR("OR"),
     NOT("NOT"),
-    IS_NULL("IS NULL"),
-    IS_NOT_NULL("IS NOT NULL"),
     IN("IN"),
     WHERE("WHERE");
 

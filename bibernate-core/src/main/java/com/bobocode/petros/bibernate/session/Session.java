@@ -6,13 +6,13 @@ public interface Session {
 
     <T> T persist(T entity);
 
-    <T, ID> T findById(Class<T> type, ID id);
+    <T> T findById(Class<T> type, Object id);
 
     <T> T find(Class<T> type, String propertyName, Object value);
 
     <T> T update(T entity);
 
-    <ID> void deleteById(ID id);
+    <T> void deleteById(Class<T> type, Object id);
 
     <T> void delete(T entity);
 
