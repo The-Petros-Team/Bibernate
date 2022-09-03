@@ -1,5 +1,6 @@
 package com.bobocode.petros.bibernate.session;
 
+import com.bobocode.petros.bibernate.session.context.PersistenceContext;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 
@@ -10,9 +11,11 @@ import java.util.Map;
 public class CacheableSession extends DefaultSession {
 
     private Map<EntityKey<?>, Object> entityCache = new HashMap<>();
+    private PersistenceContext persistenceContext;
     
     public CacheableSession(DataSource dataSource, JdbcQueryManager jdbcQueryManager) {
         super(dataSource, jdbcQueryManager);
+        this.persistenceContext = new PersistenceContext();
     }
 
     @Override
