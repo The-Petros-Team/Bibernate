@@ -29,7 +29,6 @@ public class DefaultSessionTest {
     @BeforeEach
     private void init() {
         MockitoAnnotations.openMocks(this);
-        jdbcQueryManager = mock(JdbcQueryManager.class);
         session = new DefaultSession(dataSource, jdbcQueryManager);
     }
 
