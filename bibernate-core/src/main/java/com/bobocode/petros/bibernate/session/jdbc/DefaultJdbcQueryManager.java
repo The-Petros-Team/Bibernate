@@ -59,10 +59,23 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                 .entity(entity)
                 .entityClass(entity.getClass())
                 .build();
-        return performWithTxReturning(conn -> doPersist(conn, entity, sql, configOptions));
+        return performWithTxReturning(connection -> doPersist(connection, entity, sql, configOptions));
     }
 
-    private <T> T doPersist(Connection connection, T entity, String sql, StatementConfigurationOptions configOptions) {
+    /**
+     * Performs persist operation.
+     *
+     * @param connection    connection
+     * @param entity        entity
+     * @param sql           sql query
+     * @param configOptions statement config options
+     * @param <T>           generic type
+     * @return persisted entity
+     */
+    private <T> T doPersist(final Connection connection,
+                            final T entity,
+                            final String sql,
+                            final StatementConfigurationOptions configOptions) {
         try (final PreparedStatement statement = this.strategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
             statement.executeUpdate();
             final ResultSet generatedKeys = statement.getGeneratedKeys();
@@ -76,21 +89,6 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
         } catch (SQLException | IllegalAccessException e) {
             throw new JdbcOperationException(e.getMessage(), e);
         }
-    }
-
-    private <T> T performWithTxReturning(final Function<Connection, T> connectionToObjFunction) {
-        final Connection conn = getConnection();
-        T result;
-        if (transaction == null || transaction.isClosed()) {
-            try (conn) {
-                result = connectionToObjFunction.apply(conn);
-            } catch (SQLException e) {
-                throw new JdbcOperationException(e.getMessage(), e);
-            }
-        } else {
-            result = connectionToObjFunction.apply(conn);
-        }
-        return result;
     }
 
     /**
@@ -138,8 +136,24 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                 .entity(entity)
                 .entityClass(entity.getClass())
                 .build();
-        try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.UPDATE, connection, sql, configOptions)) {
+        return performWithTxReturning(connection -> doUpdate(connection, entity, sql, configOptions));
+    }
+
+    /**
+     * Performs an update operation.
+     *
+     * @param connection    connection
+     * @param entity        entity
+     * @param sql           sql query
+     * @param configOptions statement config options
+     * @param <T>           generic type
+     * @return updated entity
+     */
+    private <T> T doUpdate(final Connection connection,
+                           final T entity,
+                           final String sql,
+                           final StatementConfigurationOptions configOptions) {
+        try (final PreparedStatement statement = this.strategyResolver.resolve(QueryType.UPDATE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
             return entity;
@@ -175,14 +189,30 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
      */
     @Override
     public <T> void deleteById(final Class<T> type, final Object id) {
+        Objects.requireNonNull(type, "Parameter [type] must not be null!");
         Objects.requireNonNull(id, "Parameter [id] must not be null!");
         final String sql = QueryBuilder.buildQuery(type, QueryType.DELETE, Collections.emptyList());
         final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
                 .entityClass(type)
                 .id(id)
                 .build();
-        try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.DELETE, connection, sql, configOptions)) {
+        performWithTxReturning(connection -> {
+            doDeleteById(connection, sql, configOptions);
+            return null;
+        });
+    }
+
+    /**
+     * Performs delete operation by a given identifier.
+     *
+     * @param connection    connection
+     * @param sql           sql query
+     * @param configOptions statement config options
+     */
+    private void doDeleteById(final Connection connection,
+                              final String sql,
+                              final StatementConfigurationOptions configOptions) {
+        try (final PreparedStatement statement = this.strategyResolver.resolve(QueryType.DELETE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
         } catch (SQLException e) {
@@ -205,6 +235,36 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
         return this.transaction;
     }
 
+    /**
+     * Helper method that runs an operation by using an underlying connection choosing mechanism.
+     * See {@link DefaultJdbcQueryManager#getConnection()}
+     *
+     * @param connectionToObjFunction function that consumes a connection, runs an operation and returns result if
+     *                                it is returned by the underlying operation.
+     * @param <T>                     generic type
+     * @return operation result
+     */
+    private <T> T performWithTxReturning(final Function<Connection, T> connectionToObjFunction) {
+        final Connection conn = getConnection();
+        T result;
+        if (transaction == null || transaction.isClosed()) {
+            try (conn) {
+                result = connectionToObjFunction.apply(conn);
+            } catch (SQLException e) {
+                throw new JdbcOperationException(e.getMessage(), e);
+            }
+        } else {
+            result = connectionToObjFunction.apply(conn);
+        }
+        return result;
+    }
+
+    /**
+     * Detects whether a transaction is currently opened and reuses a connection bounded to that
+     * transaction, otherwise a new connection will be taken from a connection pool.
+     *
+     * @return connection
+     */
     private Connection getConnection() {
         if (this.transaction == null || this.transaction.isClosed()) {
             try {
@@ -212,6 +272,8 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
             } catch (SQLException e) {
                 throw new JdbcOperationException(e.getMessage(), e);
             }
+        } else {
+            log.debug("Auto commit mode is disabled and an existing connection will be used.");
         }
         return Objects.requireNonNull(this.connection);
     }
