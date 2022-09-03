@@ -5,10 +5,11 @@ import com.bobocode.petros.bibernate.session.query.QueryBuilder;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.session.query.enums.QueryType;
+import com.bobocode.petros.bibernate.session.statement.strategy.config.StatementConfigurationOptions;
 import com.bobocode.petros.bibernate.session.statement.strategy.resolver.StatementStrategyResolver;
 import com.bobocode.petros.bibernate.session.statement.strategy.resolver.StrategyResolver;
-import com.bobocode.petros.bibernate.session.statement.strategy.config.StatementConfigurationOptions;
 import com.bobocode.petros.bibernate.transaction.Transaction;
+import com.bobocode.petros.bibernate.transaction.TransactionImpl;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Implementation of {@link JdbcQueryManager}.
@@ -31,6 +33,8 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
 
     private static final String GENERATED_KEY = "GENERATED_KEY";
 
+    private Connection connection;
+    private Transaction transaction;
     private final DataSource dataSource;
     private final StrategyResolver strategyResolver;
 
@@ -55,8 +59,11 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                 .entity(entity)
                 .entityClass(entity.getClass())
                 .build();
-        try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
+        return performWithTxReturning(conn -> doPersist(conn, entity, sql, configOptions));
+    }
+
+    private <T> T doPersist(Connection connection, T entity, String sql, StatementConfigurationOptions configOptions) {
+        try (final PreparedStatement statement = this.strategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
             statement.executeUpdate();
             final ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -69,6 +76,21 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
         } catch (SQLException | IllegalAccessException e) {
             throw new JdbcOperationException(e.getMessage(), e);
         }
+    }
+
+    private <T> T performWithTxReturning(final Function<Connection, T> connectionToObjFunction) {
+        final Connection conn = getConnection();
+        T result;
+        if (transaction == null || transaction.isClosed()) {
+            try (conn) {
+                result = connectionToObjFunction.apply(conn);
+            } catch (SQLException e) {
+                throw new JdbcOperationException(e.getMessage(), e);
+            }
+        } else {
+            result = connectionToObjFunction.apply(conn);
+        }
+        return result;
     }
 
     /**
@@ -175,6 +197,22 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
      */
     @Override
     public Transaction getTransaction() {
-        return null;
+        if (this.transaction == null || this.transaction.isClosed()) {
+            this.transaction = new TransactionImpl(getConnection());
+        } else {
+            log.warn("Transaction is already opened. All following operations will be performed within the existing transaction.");
+        }
+        return this.transaction;
+    }
+
+    private Connection getConnection() {
+        if (this.transaction == null || this.transaction.isClosed()) {
+            try {
+                this.connection = this.dataSource.getConnection();
+            } catch (SQLException e) {
+                throw new JdbcOperationException(e.getMessage(), e);
+            }
+        }
+        return Objects.requireNonNull(this.connection);
     }
 }
