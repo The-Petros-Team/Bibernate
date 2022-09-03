@@ -24,13 +24,15 @@ public class DefaultSession implements Session {
     }
 
     @Override
-    public <T, ID> T findById(Class<T> type, ID id) {
-        return jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
+    public <T> T findById(Class<T> type, Object id) {
+        jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
+        return null;
     }
 
     @Override
     public <T> T find(Class<T> type, String propertyName, Object value) {
-        return jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
+        jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
+        return null;
     }
 
     @Override
@@ -39,13 +41,13 @@ public class DefaultSession implements Session {
     }
 
     @Override
-    public <ID> void deleteById(ID id) {
-        jdbcQueryManager.deleteById(id);
+    public <T> void deleteById(Class<T> type, Object id) {
+        jdbcQueryManager.deleteById(type, id);
     }
 
     @Override
     public <T> void delete(T entity) {
-        jdbcQueryManager.delete(entity.getClass(), entity);
+        jdbcQueryManager.delete(entity);
     }
 
     @Override
