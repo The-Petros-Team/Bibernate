@@ -6,6 +6,7 @@ import com.bobocode.petros.bibernate.transaction.Transaction;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 
 import javax.sql.DataSource;
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultSession implements Session {
@@ -25,16 +26,14 @@ public class DefaultSession implements Session {
 
     @Override
     public <T> T findById(Class<T> type, Object id) {
-        return jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)))
-                .iterator()
-                .next();
+        final Collection<T> resultCollection = jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
+        return resultCollection.isEmpty() ? null : resultCollection.iterator().next();
     }
 
     @Override
     public <T> T find(Class<T> type, String propertyName, Object value) {
-        return jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)))
-                .iterator()
-                .next();
+        final Collection<T> resultCollection = jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
+        return resultCollection.isEmpty() ? null : resultCollection.iterator().next();
     }
 
     @Override

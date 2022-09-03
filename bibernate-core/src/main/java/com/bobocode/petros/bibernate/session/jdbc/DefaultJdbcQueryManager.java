@@ -6,8 +6,8 @@ import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.session.query.enums.QueryType;
 import com.bobocode.petros.bibernate.session.statement.strategy.config.StatementConfigurationOptions;
+import com.bobocode.petros.bibernate.session.statement.strategy.resolver.DefaultStatementStrategyResolver;
 import com.bobocode.petros.bibernate.session.statement.strategy.resolver.StatementStrategyResolver;
-import com.bobocode.petros.bibernate.session.statement.strategy.resolver.StrategyResolver;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 import com.bobocode.petros.bibernate.transaction.TransactionImpl;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
@@ -36,12 +36,12 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     private Connection connection;
     private Transaction transaction;
     private final DataSource dataSource;
-    private final StrategyResolver strategyResolver;
+    private final StatementStrategyResolver statementStrategyResolver;
 
     public DefaultJdbcQueryManager(final DataSource dataSource) {
         Objects.requireNonNull(dataSource, "Parameter [dataSource] must not be null!");
         this.dataSource = dataSource;
-        this.strategyResolver = StatementStrategyResolver.getInstance();
+        this.statementStrategyResolver = DefaultStatementStrategyResolver.getInstance();
     }
 
     /**
@@ -76,7 +76,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                             final T entity,
                             final String sql,
                             final StatementConfigurationOptions configOptions) {
-        try (final PreparedStatement statement = this.strategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
+        try (final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
             statement.executeUpdate();
             final ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -109,7 +109,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                 .restrictions(restrictions)
                 .build();
         try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = this.strategyResolver.resolve(QueryType.SELECT, connection, sql, configOptions)) {
+             final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.SELECT, connection, sql, configOptions)) {
             final ResultSet resultSet = statement.executeQuery();
             final QueryResult queryResult = EntityUtils.getQueryResult(resultSet, type);
             final Collection<T> result = queryResult.isSingle() ? queryResult.wrap(queryResult.getSingleResult()) :
@@ -153,7 +153,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                            final T entity,
                            final String sql,
                            final StatementConfigurationOptions configOptions) {
-        try (final PreparedStatement statement = this.strategyResolver.resolve(QueryType.UPDATE, connection, sql, configOptions)) {
+        try (final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.UPDATE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
             return entity;
@@ -212,7 +212,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     private void doDeleteById(final Connection connection,
                               final String sql,
                               final StatementConfigurationOptions configOptions) {
-        try (final PreparedStatement statement = this.strategyResolver.resolve(QueryType.DELETE, connection, sql, configOptions)) {
+        try (final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.DELETE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
         } catch (SQLException e) {
