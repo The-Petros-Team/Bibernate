@@ -5,17 +5,15 @@ import com.bobocode.petros.bibernate.session.query.condition.Restrictions;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 
-import javax.sql.DataSource;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultSession implements Session {
 
-    private final DataSource dataSource;
     private final JdbcQueryManager jdbcQueryManager;
 
-    public DefaultSession(final DataSource dataSource, final JdbcQueryManager jdbcQueryManager) {
-        this.dataSource = dataSource;
+    public DefaultSession(final JdbcQueryManager jdbcQueryManager) {
         this.jdbcQueryManager = jdbcQueryManager;
     }
 
@@ -25,15 +23,15 @@ public class DefaultSession implements Session {
     }
 
     @Override
-    public <T> T findById(Class<T> type, Object id) {
-        final Collection<T> resultCollection = jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)));
-        return resultCollection.isEmpty() ? null : resultCollection.iterator().next();
+    public <T> Optional<T> findById(Class<T> type, Object id) {
+        return jdbcQueryManager.find(type, List.of(Restrictions.idEq(EntityUtils.getIdField(type).getName(), id)))
+                .stream()
+                .findAny();
     }
 
     @Override
-    public <T> T find(Class<T> type, String propertyName, Object value) {
-        final Collection<T> resultCollection = jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
-        return resultCollection.isEmpty() ? null : resultCollection.iterator().next();
+    public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
+        return jdbcQueryManager.find(type, List.of(Restrictions.eq(propertyName, value)));
     }
 
     @Override
@@ -63,11 +61,11 @@ public class DefaultSession implements Session {
 
     @Override
     public Transaction getTransaction() {
-        throw new UnsupportedOperationException();
+        return jdbcQueryManager.getTransaction();
     }
 
     @Override
     public void close() {
-        throw new UnsupportedOperationException();
+        getTransaction().commit();
     }
 }

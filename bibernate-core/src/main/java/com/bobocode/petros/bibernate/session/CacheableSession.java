@@ -4,17 +4,18 @@ import com.bobocode.petros.bibernate.session.context.PersistenceContext;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 
-import javax.sql.DataSource;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class CacheableSession extends DefaultSession {
 
     private Map<EntityKey<?>, Object> entityCache = new HashMap<>();
     private PersistenceContext persistenceContext;
-    
-    public CacheableSession(DataSource dataSource, JdbcQueryManager jdbcQueryManager) {
-        super(dataSource, jdbcQueryManager);
+
+    public CacheableSession(JdbcQueryManager jdbcQueryManager) {
+        super(jdbcQueryManager);
         this.persistenceContext = new PersistenceContext();
     }
 
@@ -24,12 +25,12 @@ public class CacheableSession extends DefaultSession {
     }
 
     @Override
-    public <T> T findById(Class<T> type, Object id) {
+    public <T> Optional<T> findById(Class<T> type, Object id) {
         return super.findById(type, id);
     }
 
     @Override
-    public <T> T find(Class<T> type, String propertyName, Object value) {
+    public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
         return super.find(type, propertyName, value);
     }
 

@@ -31,7 +31,7 @@ import java.util.function.Function;
 @Slf4j
 public class DefaultJdbcQueryManager implements JdbcQueryManager {
 
-    private static final String GENERATED_KEY = "GENERATED_KEY";
+    private static final Integer GENERATED_KEY_COLUMN_INDEX = 1;
 
     private Connection connection;
     private Transaction transaction;
@@ -82,7 +82,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
             if (generatedKeys.next()) {
                 final Field field = EntityUtils.getIdField(entity.getClass());
                 field.setAccessible(true);
-                field.set(entity, generatedKeys.getObject(GENERATED_KEY, EntityUtils.getIdField(entity.getClass()).getType()));
+                field.set(entity, generatedKeys.getObject(GENERATED_KEY_COLUMN_INDEX, EntityUtils.getIdField(entity.getClass()).getType()));
             }
             log.debug("Query: '{}', result: {}", sql, entity);
             return entity;
@@ -117,6 +117,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
             log.debug("Query: '{}', result: {}", sql, result);
             return result;
         } catch (SQLException e) {
+            getTransaction().rollback();
             throw new JdbcOperationException(e.getMessage(), e);
         }
     }
@@ -158,6 +159,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
             return entity;
         } catch (SQLException e) {
+            getTransaction().rollback();
             throw new JdbcOperationException(e.getMessage(), e);
         }
     }
@@ -176,6 +178,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
             idField.setAccessible(true);
             deleteById(entity.getClass(), idField.get(entity));
         } catch (IllegalAccessException e) {
+            getTransaction().rollback();
             throw new JdbcOperationException(e.getMessage(), e);
         }
     }
@@ -216,6 +219,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
         } catch (SQLException e) {
+            getTransaction().rollback();
             throw new JdbcOperationException(e.getMessage(), e);
         }
     }
@@ -266,15 +270,16 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
      * @return connection
      */
     private Connection getConnection() {
-        if (this.transaction == null || this.transaction.isClosed()) {
-            try {
+        try {
+            if (connection == null || connection.isClosed()) {
                 this.connection = this.dataSource.getConnection();
-            } catch (SQLException e) {
-                throw new JdbcOperationException(e.getMessage(), e);
+            } else {
+                log.debug("Auto commit mode is disabled and an existing connection will be used.");
             }
-        } else {
-            log.debug("Auto commit mode is disabled and an existing connection will be used.");
+        } catch (SQLException e) {
+            throw new JdbcOperationException(e.getMessage(), e);
         }
         return Objects.requireNonNull(this.connection);
+
     }
 }

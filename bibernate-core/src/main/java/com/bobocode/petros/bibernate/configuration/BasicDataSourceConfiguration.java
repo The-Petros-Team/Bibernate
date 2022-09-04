@@ -11,6 +11,7 @@ public class BasicDataSourceConfiguration implements DataSourceConfiguration {
     private String url;
     private String username;
     private String password;
-    private int poolSize;
+    @Builder.Default
+    private int poolSize = 10;
     private String driverClassName;
 }
