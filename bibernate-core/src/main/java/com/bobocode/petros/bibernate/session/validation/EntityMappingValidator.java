@@ -1,9 +1,8 @@
 package com.bobocode.petros.bibernate.session.validation;
 
-import com.bobocode.petros.bibernate.exceptions.ValidationException;
+import com.bobocode.petros.bibernate.exceptions.JdbcOperationException;
 import com.bobocode.petros.bibernate.scanner.EntityScanner;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
-import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 import javax.sql.DataSource;
@@ -19,14 +18,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.COLUMNS_METADATA_MESSAGE;
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.FIELD_DOESNT_EXIST_MSG;
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.MAPPING_VALIDATION_ERROR_MSG;
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.TABLES_METADATA_MESSAGE;
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.TABLE_DOESNT_EXIST_MSG;
+
 @UtilityClass
 public class EntityMappingValidator {
     private static final String TABLE_NAME_LABEL = "TABLE_NAME";
     private static final String COLUMN_NAME_LABEL = "COLUMN_NAME";
 
-    private static final String TABLE_DOESNT_EXIST_MSG = "Table '%s' doesn't exist.";
-    private static final String FIELD_DOESNT_EXIST_MSG = "Field '%s', doesn't exist in table '%s'";
-
+    /**
+     * Validates that entity table and columns names are the same as in DB.
+     *
+     * @param dataSource datasource to DB
+     * @param entityPackages packages to scan entities
+     * @return set of violations
+     */
     public Set<MappingViolationResult> validate(DataSource dataSource, Set<String> entityPackages) {
         Set<MappingViolationResult> mappingViolationResults = new LinkedHashSet<>();
         var entities = EntityScanner.scan(entityPackages);
@@ -55,7 +64,7 @@ public class EntityMappingValidator {
                 }
             }
         } catch (SQLException e) {
-            throw new ValidationException("Couldn't validate entity mapping", e);
+            throw new JdbcOperationException(MAPPING_VALIDATION_ERROR_MSG.formatted(e.getMessage()), e);
         }
         return mappingViolationResults;
     }
@@ -67,7 +76,6 @@ public class EntityMappingValidator {
                 .toList();
     }
 
-    @SneakyThrows
     private List<String> getTableFields(String database, String schema, String table, DatabaseMetaData metaData) {
         List<String> fields = new ArrayList<>();
         try (ResultSet tableColumnsResultSet = metaData.getColumns(database, schema, table, null)) {
@@ -75,23 +83,26 @@ public class EntityMappingValidator {
                 String colName = tableColumnsResultSet.getString(COLUMN_NAME_LABEL);
                 fields.add(colName);
             }
-            return fields;
+        } catch (SQLException e) {
+            throw new JdbcOperationException(COLUMNS_METADATA_MESSAGE.formatted(e.getMessage()), e);
         }
+        return fields;
     }
 
-    @SneakyThrows
     private Set<String> getTableNames(DatabaseMetaData metadata, String database, String schema) {
         Set<String> tables = new HashSet<>();
         try (ResultSet tablesResultSet = getTablesResultSet(metadata, database, schema)) {
             while (tablesResultSet.next()) {
                 tables.add(tablesResultSet.getString(TABLE_NAME_LABEL));
             }
+        } catch (SQLException e) {
+            throw new JdbcOperationException(TABLES_METADATA_MESSAGE.formatted(e.getMessage()), e);
         }
         return tables;
     }
 
-    private ResultSet getTablesResultSet(DatabaseMetaData metaData, String databaseName, String schema) throws
+    private ResultSet getTablesResultSet(DatabaseMetaData metaData, String database, String schema) throws
             SQLException {
-        return metaData.getTables(databaseName, schema, null, new String[]{"TABLE"});
+        return metaData.getTables(database, schema, null, new String[]{"TABLE"});
     }
 }
