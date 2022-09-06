@@ -41,6 +41,22 @@ public class EntityUtils {
     }
 
     /**
+     * Extracts value that is specified as primary key (id) for the specified entity.
+     *
+     * @param entity object
+     * @return primary key value
+     */
+    public Object getIdValue(final Object entity) {
+        try {
+            Field id = getIdField(entity.getClass());
+            id.setAccessible(true);
+            return id.get(entity);
+        }catch (IllegalAccessException e) {
+            throw new ReflectionOperationException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * Extracts column name for a specified field.
      *
      * @param field field that potentially has annotation {@link Column} put on it
@@ -225,7 +241,7 @@ public class EntityUtils {
      *
      * @param entityClass    entity class
      * @param primaryKeyOnly restricts mapping to a single field - id (primary key)
-     * @param <T> generic type
+     * @param <T>            generic type
      * @return string of the format above
      */
     public <T> String getMappedQueryColumns(final Class<T> entityClass, final boolean primaryKeyOnly) {
