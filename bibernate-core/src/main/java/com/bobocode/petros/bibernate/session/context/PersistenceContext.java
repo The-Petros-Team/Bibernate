@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.NULL_ENTITY_PERSISTENCE_CONTEXT_CACHE_EXCEPTION;
 import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.NULL_ENTITY_PERSISTENCE_CONTEXT_SNAPSHOT_EXCEPTION;
@@ -38,7 +39,7 @@ public class PersistenceContext {
      */
     public void addSnapshot(final Object entity) {
         requireNonNull(entity, NULL_ENTITY_PERSISTENCE_CONTEXT_SNAPSHOT_EXCEPTION);
-        var key = new EntityKey<>(entity.getClass(), EntityUtils.getIdValue(entity));
+        var key = EntityUtils.createEntityKey(entity);
         entitySnapshots.put(key, replicateObject(entity));
     }
 
@@ -50,7 +51,7 @@ public class PersistenceContext {
      */
     public void addToCache(final Object entity) {
         requireNonNull(entity, NULL_ENTITY_PERSISTENCE_CONTEXT_CACHE_EXCEPTION);
-        var key = new EntityKey<>(entity.getClass(), EntityUtils.getIdValue(entity));
+        var key = EntityUtils.createEntityKey(entity);
         cache.put(key, entity);
     }
 
@@ -65,24 +66,25 @@ public class PersistenceContext {
      */
     public List<Object> getChangedEntities() {
         return cache.entrySet().stream()
-                .filter(this::isUpdated)
+                .filter(this::isNotUpdated)
                 .map(Map.Entry::getValue)
                 .toList();
     }
 
-    private boolean isUpdated(Map.Entry<EntityKey<?>, Object> entry) {
-        return !Arrays.stream(entry.getValue().getClass().getDeclaredFields())
-                .allMatch(field -> {
+    private boolean isNotUpdated(Map.Entry<EntityKey<?>, Object> entry) {
+        return Arrays.stream(entry.getValue().getClass().getDeclaredFields())
+                .anyMatch(Predicate.not(field -> {
                     try {
                         field.setAccessible(true);
-                        var databaseRepresentEntity = entitySnapshots.get(entry.getKey());
-                        var lastStateEntity = cache.get(entry.getKey());
+                        EntityKey<?> key = entry.getKey();
+                        var entitySnapshot = entitySnapshots.get(key);
+                        var cachedEntity  = cache.get(key);
 
-                        return field.get(databaseRepresentEntity).equals(field.get(lastStateEntity));
+                        return field.get(entitySnapshot).equals(field.get(cachedEntity));
                     } catch (IllegalAccessException e) {
                         throw new ReflectionOperationException(e.getMessage(), e);
                     }
-                });
+                }));
     }
 
     private Object replicateObject(Object entity) {

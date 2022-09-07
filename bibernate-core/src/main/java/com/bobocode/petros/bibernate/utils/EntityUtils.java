@@ -6,6 +6,7 @@ import com.bobocode.petros.bibernate.annotations.Table;
 import com.bobocode.petros.bibernate.exceptions.JdbcOperationException;
 import com.bobocode.petros.bibernate.exceptions.NoEntityIdException;
 import com.bobocode.petros.bibernate.exceptions.ReflectionOperationException;
+import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import lombok.experimental.UtilityClass;
@@ -51,9 +52,19 @@ public class EntityUtils {
             Field id = getIdField(entity.getClass());
             id.setAccessible(true);
             return id.get(entity);
-        }catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             throw new ReflectionOperationException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Create {@link EntityKey} from accepted entity
+     *
+     * @param entity
+     * @return entity key
+     */
+    public EntityKey<?> createEntityKey(Object entity) {
+        return new EntityKey<>(entity.getClass(), getIdValue(entity));
     }
 
     /**

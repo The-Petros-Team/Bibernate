@@ -62,11 +62,13 @@ class PersistenceContextTest {
     }
 
     @Test
-    void whenAddNullOrNotEntityAsEntityToSnapshotThenThrowNullPointerException() {
-        assertAll(
-                () -> assertThrows(NullPointerException.class, () -> persistenceContext.addSnapshot(null)),
-                () -> assertThrows(NoEntityIdException.class, () -> persistenceContext.addSnapshot(order))
-        );
+    void whenAddNullAsEntityToSnapshotThenThrowNullPointerException() {
+        assertThrows(NullPointerException.class, () -> persistenceContext.addSnapshot(null));
+    }
+
+    @Test
+    void whenAddObjectWithoutIdFieldToSnapshotThenThrowNoEntityIdException() {
+        assertThrows(NoEntityIdException.class, () -> persistenceContext.addSnapshot(order));
     }
 
     @Test
@@ -89,11 +91,14 @@ class PersistenceContextTest {
     }
 
     @Test
-    void whenAddNullOrNotEntityAsEntityToCacheThenThrowNullPointerException() {
-        assertAll(
-                () -> assertThrows(NullPointerException.class, () -> persistenceContext.addToCache(null)),
-                () -> assertThrows(NoEntityIdException.class, () -> persistenceContext.addToCache(order))
-        );
+    void whenAddNullAsEntityToCacheThenThrowNullPointerException() {
+        assertThrows(NullPointerException.class, () -> persistenceContext.addToCache(null));
+    }
+
+    @Test
+    void whenAddObjectWithoutIdFieldToCacheThenThrowNoEntityIdException(){
+        assertThrows(NoEntityIdException.class, () -> persistenceContext.addToCache(order));
+
     }
 
     @Test
@@ -131,11 +136,11 @@ class PersistenceContextTest {
 
         var changedEntities = persistenceContext.getChangedEntities();
         assertAll(
-                ()-> assertNotNull(changedEntities),
+                () -> assertNotNull(changedEntities),
                 () -> assertTrue(changedEntities.size() > 0),
-                ()-> assertTrue(changedEntities.stream()
+                () -> assertTrue(changedEntities.stream()
                         .anyMatch(entity -> entity.equals(milk))),
-                ()-> assertFalse(changedEntities.stream()
+                () -> assertFalse(changedEntities.stream()
                         .anyMatch(entity -> entity.equals(porosiatko)))
         );
     }
