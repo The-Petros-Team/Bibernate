@@ -29,7 +29,9 @@ public class TransactionImpl implements Transaction {
     @Override
     public void commit() {
         try (connection) {
-            this.connection.commit();
+            if (!connection.getAutoCommit()) {
+                this.connection.commit();
+            }
             this.isOpened = false;
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);
@@ -39,7 +41,9 @@ public class TransactionImpl implements Transaction {
     @Override
     public void rollback() {
         try (connection) {
-            this.connection.rollback();
+            if (!connection.getAutoCommit()) {
+                this.connection.rollback();
+            }
             this.isOpened = false;
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);

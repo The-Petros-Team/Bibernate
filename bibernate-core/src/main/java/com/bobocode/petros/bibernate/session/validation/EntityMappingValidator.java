@@ -1,5 +1,6 @@
 package com.bobocode.petros.bibernate.session.validation;
 
+import com.bobocode.petros.bibernate.annotations.Column;
 import com.bobocode.petros.bibernate.exceptions.JdbcOperationException;
 import com.bobocode.petros.bibernate.scanner.EntityScanner;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
@@ -15,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -32,7 +34,7 @@ public class EntityMappingValidator {
     /**
      * Validates that entity table and columns names are the same as in DB.
      *
-     * @param dataSource datasource to DB
+     * @param dataSource     datasource to DB
      * @param entityPackages packages to scan entities
      * @return set of violations
      */
@@ -71,7 +73,9 @@ public class EntityMappingValidator {
 
     private static List<String> getUnknownFields(Field[] entityFields, List<String> tableFields) {
         return Arrays.stream(entityFields)
-                .map(Field::getName)
+                .map(field -> Optional.ofNullable(field.getAnnotation(Column.class))
+                        .map(Column::name)
+                        .orElse(field.getName()))
                 .filter(Predicate.not(tableFields::contains))
                 .toList();
     }
