@@ -1,5 +1,6 @@
 package com.bobocode.petros.bibernate.session.context;
 
+import com.bobocode.petros.bibernate.exceptions.ExceptionMessages;
 import com.bobocode.petros.bibernate.exceptions.ReflectionOperationException;
 import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
@@ -11,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.NULL_ENTITY_PERSISTENCE_CONTEXT_CACHE_EXCEPTION;
-import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.NULL_ENTITY_PERSISTENCE_CONTEXT_SNAPSHOT_EXCEPTION;
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.NULL_ENTITY_PERSISTENCE_CONTEXT_MSG;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -38,7 +38,7 @@ public class PersistenceContext {
      * @throws NullPointerException if entity param is null
      */
     public void addSnapshot(final Object entity) {
-        requireNonNull(entity, NULL_ENTITY_PERSISTENCE_CONTEXT_SNAPSHOT_EXCEPTION);
+        requireNonNull(entity, String.format(NULL_ENTITY_PERSISTENCE_CONTEXT_MSG, "Snapshot entity "));
         var key = EntityUtils.createEntityKey(entity);
         entitySnapshots.put(key, replicateObject(entity));
     }
@@ -50,7 +50,7 @@ public class PersistenceContext {
      * @throws NullPointerException if entity param is null
      */
     public void addToCache(final Object entity) {
-        requireNonNull(entity, NULL_ENTITY_PERSISTENCE_CONTEXT_CACHE_EXCEPTION);
+        requireNonNull(entity, String.format(NULL_ENTITY_PERSISTENCE_CONTEXT_MSG, "Cacheable entity "));
         var key = EntityUtils.createEntityKey(entity);
         cache.put(key, entity);
     }
