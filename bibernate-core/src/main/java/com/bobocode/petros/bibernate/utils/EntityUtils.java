@@ -6,6 +6,7 @@ import com.bobocode.petros.bibernate.annotations.Table;
 import com.bobocode.petros.bibernate.exceptions.JdbcOperationException;
 import com.bobocode.petros.bibernate.exceptions.NoEntityIdException;
 import com.bobocode.petros.bibernate.exceptions.ReflectionOperationException;
+import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import lombok.experimental.UtilityClass;
@@ -38,6 +39,32 @@ public class EntityUtils {
                 .filter(field -> field.isAnnotationPresent(Id.class))
                 .findAny()
                 .orElseThrow(() -> new NoEntityIdException(String.format("Entity class '%s' has no field marked with @Id", entityClass.getName())));
+    }
+
+    /**
+     * Extracts value that is specified as primary key (id) for the specified entity.
+     *
+     * @param entity object
+     * @return primary key value
+     */
+    public Object getIdValue(final Object entity) {
+        try {
+            Field id = getIdField(entity.getClass());
+            id.setAccessible(true);
+            return id.get(entity);
+        } catch (IllegalAccessException e) {
+            throw new ReflectionOperationException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Create {@link EntityKey} from accepted entity
+     *
+     * @param entity
+     * @return entity key
+     */
+    public EntityKey<?> createEntityKey(Object entity) {
+        return new EntityKey<>(entity.getClass(), getIdValue(entity));
     }
 
     /**
@@ -225,7 +252,7 @@ public class EntityUtils {
      *
      * @param entityClass    entity class
      * @param primaryKeyOnly restricts mapping to a single field - id (primary key)
-     * @param <T> generic type
+     * @param <T>            generic type
      * @return string of the format above
      */
     public <T> String getMappedQueryColumns(final Class<T> entityClass, final boolean primaryKeyOnly) {
