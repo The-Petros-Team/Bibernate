@@ -1,23 +1,19 @@
 package com.bobocode.petros.bibernate.session;
 
-import com.bobocode.petros.bibernate.session.context.PersistenceContext;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
-import com.bobocode.petros.bibernate.transaction.Transaction;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class CacheableSession extends DefaultSession {
 
-    private Map<EntityKey<?>, Object> entityCache = new HashMap<>();
-    private PersistenceContext persistenceContext;
+    //    private Map<EntityKey<?>, Object> entityCache = new HashMap<>();
+//    private PersistenceContext persistenceContext;
 
     public CacheableSession(JdbcQueryManager jdbcQueryManager) {
         super(jdbcQueryManager);
-        this.persistenceContext = new PersistenceContext();
+//        this.persistenceContext = new PersistenceContext();
     }
+/*
+    This section is commented due to PMD violation. Since these methods will be updated it was decided to just comment them.
+    In case some methods won't be realy overriden - please remove them to avoid PMD violations
 
     @Override
     public <T> T persist(T entity) {
@@ -67,5 +63,5 @@ public class CacheableSession extends DefaultSession {
     @Override
     public void close() {
         super.close();
-    }
+    }*/
 }

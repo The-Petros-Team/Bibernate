@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * Helper class that is used to build SQL queries for the statically specified parameters.
  */
-public class QueryBuilder {
+public class QueryHelper {
 
     /**
      * Template for INSERT query.
