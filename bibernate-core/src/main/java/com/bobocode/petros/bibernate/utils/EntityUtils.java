@@ -19,14 +19,11 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.UNRESOLVABLE_PROPERTY_MESSAGE;
 
 /**
  * Utility class that provides some generic operations on entities.
@@ -297,7 +294,7 @@ public class EntityUtils {
                     .stream()
                     .filter(column -> column.equals(propertyName))
                     .findAny()
-                    .orElseThrow(() -> new ReflectionOperationException(String.format("Can't resolve property '%s' in class '%s'", propertyName, entityClass.getName())));
+                    .orElseThrow(() -> new ReflectionOperationException(String.format(UNRESOLVABLE_PROPERTY_MESSAGE, propertyName, entityClass.getName())));
             log.info("Resolved a field '{}' in class '{}'", result, entityClass.getName());
         }
         return result;
