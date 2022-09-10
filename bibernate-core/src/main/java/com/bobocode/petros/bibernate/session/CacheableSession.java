@@ -31,8 +31,10 @@ public class CacheableSession extends DefaultSession {
 
     @Override
     public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
-        return persistenceContext.getEntitiesCollectionFromCacheByProperty(type, propertyName, value)
-                .orElseGet(() -> super.find(type, propertyName, value));
+        Collection<T> cachedEntities = persistenceContext.getEntitiesCollectionFromCacheByProperty(type, propertyName, value);
+        return cachedEntities.isEmpty() ?
+                super.find(type, propertyName, value) :
+                cachedEntities;
     }
 
     @Override

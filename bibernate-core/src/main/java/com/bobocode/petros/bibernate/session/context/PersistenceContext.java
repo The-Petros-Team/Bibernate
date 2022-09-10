@@ -3,7 +3,10 @@ package com.bobocode.petros.bibernate.session.context;
 import com.bobocode.petros.bibernate.exceptions.ReflectionOperationException;
 import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Predicate;
@@ -17,6 +20,8 @@ import static java.util.Objects.requireNonNull;
  * or do entity snapshot. Also, it provides method
  * than return entities that was changed.
  */
+
+@Slf4j
 public class PersistenceContext {
 
     private Map<EntityKey<?>, Object> entitySnapshots;
@@ -68,39 +73,39 @@ public class PersistenceContext {
                 .toList();
     }
 
-    public Object removeEntityFromCacheByEntityKey(EntityKey<?> entityKey){
+    public Object removeEntityFromCacheByEntityKey(EntityKey<?> entityKey) {
         return cache.remove(entityKey);
     }
 
-    public Object removeEntityFromSnapshotByEntityKey(EntityKey<?> entityKey){
+    public Object removeEntityFromSnapshotByEntityKey(EntityKey<?> entityKey) {
         return entitySnapshots.remove(entityKey);
     }
 
     public <T> Optional<T> getEntityFromCacheById(Class<T> entityType, Object id) {
-        return Optional.ofNullable((T) cache.get(new EntityKey<>(entityType, id)));
+        return Optional.ofNullable(entityType.cast(cache.get(new EntityKey<>(entityType, id))));
     }
 
-    public <T> Optional<Collection<T>> getEntitiesCollectionFromCacheByProperty(Class<T> entityType, String propertyName, Object value) {
-        return Optional.of(cache.values()
+    public <T> Collection<T> getEntitiesCollectionFromCacheByProperty(Class<T> entityType, String propertyName, Object value) {
+        return cache.values()
                 .stream()
-                .filter(entity -> entity.getClass().isAssignableFrom(entityType) &&
-                        compareEntityByProperty(entity, propertyName, value))
-                .map(entity -> ((T) entity))
-                .collect(Collectors.toSet()));
+                .filter(entity -> entity.getClass().isAssignableFrom(entityType))
+                .filter(entity ->compareEntityByProperty(entity, propertyName, value))
+                .map(entityType::cast)
+                .collect(Collectors.toSet());
     }
 
     private boolean compareEntityByProperty(Object entity, String propertyName, Object propertyValue) {
-        return Arrays.stream(entity.getClass().getDeclaredFields())
-                .filter(field -> field.getName().equals(propertyName))
-                .anyMatch(field -> {
-                    try {
-                        field.setAccessible(true);
-                        var value = field.get(entity);
-                        return value.equals(propertyValue);
-                    } catch (IllegalAccessException e) {
-                        throw new ReflectionOperationException(String.format("Cannot get value from entity %s", entity), e);
-                    }
-                });
+        {
+            try {
+                Field field = entity.getClass().getDeclaredField(propertyName);
+                field.setAccessible(true);
+                var value = field.get(entity);
+                return value.equals(propertyValue);
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                log.error(String.format("Cannot get field %s from entity %s", propertyName, entity));
+                return false;
+            }
+        }
     }
 
     private boolean isNotUpdated(Map.Entry<EntityKey<?>, Object> entry) {
@@ -133,7 +138,7 @@ public class PersistenceContext {
                     });
             return replica;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                NoSuchMethodException e) {
+                 NoSuchMethodException e) {
             throw new ReflectionOperationException(e.getMessage(), e);
         }
     }
