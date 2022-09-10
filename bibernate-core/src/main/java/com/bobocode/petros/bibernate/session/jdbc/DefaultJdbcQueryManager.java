@@ -1,7 +1,7 @@
 package com.bobocode.petros.bibernate.session.jdbc;
 
 import com.bobocode.petros.bibernate.exceptions.JdbcOperationException;
-import com.bobocode.petros.bibernate.session.query.QueryBuilder;
+import com.bobocode.petros.bibernate.session.query.QueryHelper;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.session.query.enums.QueryType;
@@ -54,7 +54,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     @Override
     public <T> T persist(final T entity) {
         Objects.requireNonNull(entity, "Parameter [entity] must not be null!");
-        final String sql = QueryBuilder.buildQuery(entity.getClass(), QueryType.INSERT, Collections.emptyList());
+        final String sql = QueryHelper.buildQuery(entity.getClass(), QueryType.INSERT, Collections.emptyList());
         final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
                 .entity(entity)
                 .entityClass(entity.getClass())
@@ -76,7 +76,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                             final T entity,
                             final String sql,
                             final StatementConfigurationOptions configOptions) {
-        try (final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
+        try (PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.INSERT, connection, sql, configOptions)) {
             statement.executeUpdate();
             final ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -103,13 +103,13 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     public <T> Collection<T> find(final Class<T> type, final List<Restriction> restrictions) {
         Objects.requireNonNull(type, "Parameter [type] must not be null!");
         Objects.requireNonNull(restrictions, "Parameter [restrictions] must not be null!");
-        final String sql = QueryBuilder.buildQuery(type, QueryType.SELECT, restrictions);
+        final String sql = QueryHelper.buildQuery(type, QueryType.SELECT, restrictions);
         final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
                 .entityClass(type)
                 .restrictions(restrictions)
                 .build();
-        try (final Connection connection = this.dataSource.getConnection();
-             final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.SELECT, connection, sql, configOptions)) {
+        try (Connection connection = this.dataSource.getConnection();
+             PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.SELECT, connection, sql, configOptions)) {
             final ResultSet resultSet = statement.executeQuery();
             final QueryResult queryResult = EntityUtils.getQueryResult(resultSet, type);
             final Collection<T> result = queryResult.isSingle() ? queryResult.wrap(queryResult.getSingleResult()) :
@@ -132,7 +132,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     @Override
     public <T> T update(final T entity) {
         Objects.requireNonNull(entity, "Parameter [entity] must not be null!");
-        final String sql = QueryBuilder.buildQuery(entity.getClass(), QueryType.UPDATE, Collections.emptyList());
+        final String sql = QueryHelper.buildQuery(entity.getClass(), QueryType.UPDATE, Collections.emptyList());
         final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
                 .entity(entity)
                 .entityClass(entity.getClass())
@@ -154,7 +154,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
                            final T entity,
                            final String sql,
                            final StatementConfigurationOptions configOptions) {
-        try (final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.UPDATE, connection, sql, configOptions)) {
+        try (PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.UPDATE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
             return entity;
@@ -194,7 +194,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     public <T> void deleteById(final Class<T> type, final Object id) {
         Objects.requireNonNull(type, "Parameter [type] must not be null!");
         Objects.requireNonNull(id, "Parameter [id] must not be null!");
-        final String sql = QueryBuilder.buildQuery(type, QueryType.DELETE, Collections.emptyList());
+        final String sql = QueryHelper.buildQuery(type, QueryType.DELETE, Collections.emptyList());
         final StatementConfigurationOptions configOptions = StatementConfigurationOptions.builder()
                 .entityClass(type)
                 .id(id)
@@ -215,7 +215,7 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     private void doDeleteById(final Connection connection,
                               final String sql,
                               final StatementConfigurationOptions configOptions) {
-        try (final PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.DELETE, connection, sql, configOptions)) {
+        try (PreparedStatement statement = this.statementStrategyResolver.resolve(QueryType.DELETE, connection, sql, configOptions)) {
             final int rowsUpdated = statement.executeUpdate();
             log.debug("Updated {} rows for query '{}'", rowsUpdated, sql);
         } catch (SQLException e) {

@@ -19,7 +19,12 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -243,10 +248,10 @@ public class EntityUtils {
      * @return true if value is instance of the predefined classes
      */
     private boolean isDate(final Object value) {
-        return (value instanceof java.util.Date)
-                || (value instanceof LocalDate)
-                || (value instanceof LocalTime)
-                || (value instanceof LocalDateTime);
+        return value instanceof Date
+                || value instanceof LocalDate
+                || value instanceof LocalTime
+                || value instanceof LocalDateTime;
     }
 
     /**
@@ -276,10 +281,10 @@ public class EntityUtils {
      * name, like 'firstName', so this case is also handled.
      * It means, that it is possible to pass a property name in both given forms and achieve the same result.
      *
-     * @param entityClass entity class
+     * @param entityClass  entity class
      * @param propertyName property name
+     * @param <T>          generic type
      * @return property name reflected in database
-     * @param <T> generic type
      */
     public <T> String resolveEntityColumnByPropertyName(final Class<T> entityClass, final String propertyName) {
         String result;
