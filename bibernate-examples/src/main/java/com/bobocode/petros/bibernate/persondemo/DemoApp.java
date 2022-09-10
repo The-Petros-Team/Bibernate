@@ -30,7 +30,7 @@ public class DemoApp {
         p.setLastName("Kotenok");
         p.setCreatedAt(LocalDateTime.now());
 
-        final Person kirill = qm.persist(p);
+//        final Person kirill = qm.persist(p);
 
         transaction.commit();
 

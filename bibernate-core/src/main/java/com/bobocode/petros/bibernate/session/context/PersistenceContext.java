@@ -133,7 +133,7 @@ public class PersistenceContext {
                     });
             return replica;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
+                NoSuchMethodException e) {
             throw new ReflectionOperationException(e.getMessage(), e);
         }
     }

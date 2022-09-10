@@ -18,7 +18,12 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -200,7 +205,7 @@ public class EntityUtils {
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
-                 NoSuchMethodException | NoSuchFieldException e) {
+                NoSuchMethodException | NoSuchFieldException e) {
             throw new ReflectionOperationException(e.getMessage(), e);
         }
     }
@@ -252,10 +257,10 @@ public class EntityUtils {
      * @return true if value is instance of the predefined classes
      */
     private boolean isDate(final Object value) {
-        return (value instanceof java.util.Date)
-                || (value instanceof LocalDate)
-                || (value instanceof LocalTime)
-                || (value instanceof LocalDateTime);
+        return value instanceof Date
+                || value instanceof LocalDate
+                || value instanceof LocalTime
+                || value instanceof LocalDateTime;
     }
 
     /**
