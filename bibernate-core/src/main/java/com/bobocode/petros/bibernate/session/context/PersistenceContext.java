@@ -3,7 +3,6 @@ package com.bobocode.petros.bibernate.session.context;
 import com.bobocode.petros.bibernate.exceptions.ReflectionOperationException;
 import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
