@@ -1,49 +1,59 @@
 package com.bobocode.petros.bibernate.session;
 
+import com.bobocode.petros.bibernate.session.context.PersistenceContext;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
+import com.bobocode.petros.bibernate.transaction.Transaction;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public class CacheableSession extends DefaultSession {
-
-    //    private Map<EntityKey<?>, Object> entityCache = new HashMap<>();
-//    private PersistenceContext persistenceContext;
+    private PersistenceContext persistenceContext;
 
     public CacheableSession(JdbcQueryManager jdbcQueryManager) {
         super(jdbcQueryManager);
-//        this.persistenceContext = new PersistenceContext();
+        this.persistenceContext = new PersistenceContext();
     }
 
-    /*@Override
+    @Override
     public <T> T persist(T entity) {
-        return super.persist(entity);
+        T persistedEntity = super.persist(entity);
+        persistenceContext.addToCache(persistedEntity);
+        persistenceContext.addSnapshot(persistedEntity);
+        return persistedEntity;
     }
 
     @Override
     public <T> Optional<T> findById(Class<T> type, Object id) {
-        return super.findById(type, id);
-    }*/
+        return persistenceContext.getEntityFromCacheById(type, id).or(() -> super.findById(type, id));
+    }
 
     @Override
     public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
-        final String columnName = EntityUtils.resolveEntityColumnByPropertyName(type, propertyName);
-        return super.find(type, columnName, value);
+        return persistenceContext.getEntitiesCollectionFromCacheByProperty(type, propertyName, value)
+                .orElseGet(() -> super.find(type, propertyName, value));
     }
 
-    /*@Override
+    @Override
     public <T> T update(T entity) {
-        return super.update(entity);
+        T updatedEntity = super.update(entity);
+        persistenceContext.addToCache(updatedEntity);
+        return updatedEntity;
     }
 
     @Override
     public <T> void deleteById(Class<T> type, Object id) {
         super.deleteById(type, id);
+        persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(type, id));
+        persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(type, id));
     }
 
     @Override
     public <T> void delete(T entity) {
         super.delete(entity);
+        persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(entity));
+        persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(entity));
     }
 
     @Override
@@ -64,5 +74,5 @@ public class CacheableSession extends DefaultSession {
     @Override
     public void close() {
         super.close();
-    }*/
+    }
 }

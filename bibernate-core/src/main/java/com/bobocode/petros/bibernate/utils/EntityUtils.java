@@ -72,6 +72,17 @@ public class EntityUtils {
     }
 
     /**
+     * Create {@link EntityKey} from accepted entity
+     *
+     * @param entityClass
+     * @param id
+     * @return
+     */
+    public EntityKey<?> createEntityKey(Class<?> entityClass, Object id) {
+        return new EntityKey<>(entityClass, id);
+    }
+
+    /**
      * Extracts column name for a specified field.
      *
      * @param field field that potentially has annotation {@link Column} put on it

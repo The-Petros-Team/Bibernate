@@ -5,11 +5,9 @@ import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.NULL_ENTITY_PERSISTENCE_CONTEXT_MSG;
 import static java.util.Objects.requireNonNull;
@@ -68,6 +66,41 @@ public class PersistenceContext {
                 .filter(this::isNotUpdated)
                 .map(Map.Entry::getValue)
                 .toList();
+    }
+
+    public Object removeEntityFromCacheByEntityKey(EntityKey<?> entityKey){
+        return cache.remove(entityKey);
+    }
+
+    public Object removeEntityFromSnapshotByEntityKey(EntityKey<?> entityKey){
+        return entitySnapshots.remove(entityKey);
+    }
+
+    public <T> Optional<T> getEntityFromCacheById(Class<T> entityType, Object id) {
+        return Optional.ofNullable((T) cache.get(new EntityKey<>(entityType, id)));
+    }
+
+    public <T> Optional<Collection<T>> getEntitiesCollectionFromCacheByProperty(Class<T> entityType, String propertyName, Object value) {
+        return Optional.of(cache.values()
+                .stream()
+                .filter(entity -> entity.getClass().isAssignableFrom(entityType) &&
+                        compareEntityByProperty(entity, propertyName, value))
+                .map(entity -> ((T) entity))
+                .collect(Collectors.toSet()));
+    }
+
+    private boolean compareEntityByProperty(Object entity, String propertyName, Object propertyValue) {
+        return Arrays.stream(entity.getClass().getDeclaredFields())
+                .filter(field -> field.getName().equals(propertyName))
+                .anyMatch(field -> {
+                    try {
+                        field.setAccessible(true);
+                        var value = field.get(entity);
+                        return value.equals(propertyValue);
+                    } catch (IllegalAccessException e) {
+                        throw new ReflectionOperationException(String.format("Cannot get value from entity %s", entity), e);
+                    }
+                });
     }
 
     private boolean isNotUpdated(Map.Entry<EntityKey<?>, Object> entry) {
