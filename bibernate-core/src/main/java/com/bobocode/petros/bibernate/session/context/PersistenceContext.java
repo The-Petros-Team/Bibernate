@@ -88,22 +88,20 @@ public class PersistenceContext {
         return cache.values()
                 .stream()
                 .filter(entity -> entity.getClass().isAssignableFrom(entityType))
-                .filter(entity ->compareEntityByProperty(entity, propertyName, value))
+                .filter(entity -> compareEntityByProperty(entity, propertyName, value))
                 .map(entityType::cast)
                 .collect(Collectors.toSet());
     }
 
     private boolean compareEntityByProperty(Object entity, String propertyName, Object propertyValue) {
-        {
-            try {
-                Field field = entity.getClass().getDeclaredField(propertyName);
-                field.setAccessible(true);
-                var value = field.get(entity);
-                return value.equals(propertyValue);
-            } catch (IllegalAccessException | NoSuchFieldException e) {
-                log.error(String.format("Cannot get field %s from entity %s", propertyName, entity));
-                return false;
-            }
+        try {
+            Field field = entity.getClass().getDeclaredField(propertyName);
+            field.setAccessible(true);
+            var value = field.get(entity);
+            return value.equals(propertyValue);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            log.error(String.format("Cannot get field %s from entity %s", propertyName, entity));
+            return false;
         }
     }
 
