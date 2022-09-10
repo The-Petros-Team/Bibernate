@@ -25,6 +25,8 @@ public interface Session {
 
     Transaction getTransaction();
 
+    void flush();
+
     void close();
 
 }
