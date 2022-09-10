@@ -1,6 +1,5 @@
 package com.bobocode.petros.bibernate.session.context;
 
-import com.bobocode.petros.bibernate.exceptions.ExceptionMessages;
 import com.bobocode.petros.bibernate.exceptions.ReflectionOperationException;
 import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
@@ -78,7 +77,7 @@ public class PersistenceContext {
                         field.setAccessible(true);
                         EntityKey<?> key = entry.getKey();
                         var entitySnapshot = entitySnapshots.get(key);
-                        var cachedEntity  = cache.get(key);
+                        var cachedEntity = cache.get(key);
 
                         return field.get(entitySnapshot).equals(field.get(cachedEntity));
                     } catch (IllegalAccessException e) {
@@ -101,7 +100,7 @@ public class PersistenceContext {
                     });
             return replica;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
+                NoSuchMethodException e) {
             throw new ReflectionOperationException(e.getMessage(), e);
         }
     }
