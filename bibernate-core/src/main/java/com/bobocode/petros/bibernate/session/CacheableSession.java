@@ -53,7 +53,7 @@ public class CacheableSession extends DefaultSession {
     @Override
     public <T> void delete(T entity) {
         super.delete(entity);
-        persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(entity));
+        persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(entity));
         persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(entity));
     }
 
