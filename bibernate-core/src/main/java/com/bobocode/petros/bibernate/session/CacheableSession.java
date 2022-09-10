@@ -74,7 +74,7 @@ public class CacheableSession extends DefaultSession {
 
     @Override
     public void close() {
-        persistenceContext.clear();
         super.close();
+        persistenceContext.clear();
     }
 }
