@@ -3,6 +3,7 @@ package com.bobocode.petros.bibernate.session;
 import com.bobocode.petros.bibernate.session.context.PersistenceContext;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.transaction.Transaction;
+import com.bobocode.petros.bibernate.utils.EntityUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,7 +32,8 @@ public class CacheableSession extends DefaultSession {
 
     @Override
     public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
-        return super.find(type, propertyName, value);
+        final String columnName = EntityUtils.resolveEntityColumnByPropertyName(type, propertyName);
+        return super.find(type, columnName, value);
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Utility class that provides some generic operations on entities.
  */
+@Slf4j
 @UtilityClass
 public class EntityUtils {
 
@@ -266,6 +268,34 @@ public class EntityUtils {
                     .map(column -> column + " = ?")
                     .collect(Collectors.joining(", "));
         }
+    }
+
+    /**
+     * Helps to resolve a given property for a given entity class. If property name is equal to column name, like
+     * 'first_name' it should be resolved correctly as well as the case, then property name equals to entity field
+     * name, like 'firstName', so this case is also handled.
+     * It means, that it is possible to pass a property name in both given forms and achieve the same result.
+     *
+     * @param entityClass entity class
+     * @param propertyName property name
+     * @return property name reflected in database
+     * @param <T> generic type
+     */
+    public <T> String resolveEntityColumnByPropertyName(final Class<T> entityClass, final String propertyName) {
+        String result;
+        try {
+            final Field field = entityClass.getDeclaredField(propertyName);
+            result = EntityUtils.getColumnName(field);
+        } catch (NoSuchFieldException e) {
+            log.warn("Class '{}' doesn't have a field named '{}'. Analyzing class mappings...", entityClass.getName(), propertyName);
+            result = EntityUtils.getColumnNames(EntityUtils.getEntityFields(entityClass))
+                    .stream()
+                    .filter(column -> column.equals(propertyName))
+                    .findAny()
+                    .orElseThrow(() -> new ReflectionOperationException(String.format("Can't resolve property '%s' in class '%s'", propertyName, entityClass.getName())));
+            log.info("Resolved a field '{}' in class '{}'", result, entityClass.getName());
+        }
+        return result;
     }
 
     /**
