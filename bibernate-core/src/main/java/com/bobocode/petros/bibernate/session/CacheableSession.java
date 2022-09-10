@@ -39,6 +39,7 @@ public class CacheableSession extends DefaultSession {
     public <T> T update(T entity) {
         T updatedEntity = super.update(entity);
         persistenceContext.addToCache(updatedEntity);
+        persistenceContext.addSnapshot(updatedEntity);
         return updatedEntity;
     }
 
