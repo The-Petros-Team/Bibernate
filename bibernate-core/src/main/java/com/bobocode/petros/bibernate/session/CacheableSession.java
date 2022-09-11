@@ -18,7 +18,7 @@ public class CacheableSession extends DefaultSession {
     public CacheableSession(JdbcQueryManager jdbcQueryManager) {
         super(jdbcQueryManager);
         this.persistenceContext = new PersistenceContext();
-        this.actionQueue = new ActionQueue();
+        this.actionQueue = new ActionQueue(persistenceContext);
     }
 
     @Override
@@ -26,7 +26,7 @@ public class CacheableSession extends DefaultSession {
         T persistedEntity = super.persist(entity);
         persistenceContext.addToCache(persistedEntity);
         persistenceContext.addSnapshot(persistedEntity);
-        actionQueue.add(new InsertEntityAction(entity, jdbcQueryManager));
+//        actionQueue.add(new InsertEntityAction(entity, jdbcQueryManager));
         return persistedEntity;
     }
 
@@ -45,17 +45,15 @@ public class CacheableSession extends DefaultSession {
 
     @Override
     public <T> T update(T entity) {
-        T updatedEntity = super.update(entity);
-        persistenceContext.addToCache(updatedEntity);
-        persistenceContext.addSnapshot(updatedEntity);
         actionQueue.add(new UpdateEntityAction(entity, jdbcQueryManager));
-        return updatedEntity;
+        persistenceContext.addToCache(entity);
+        persistenceContext.addSnapshot(entity);
+        return entity;
     }
 
     @Override
     public <T> void deleteById(Class<T> type, Object id) {
         actionQueue.add(new DeleteEntityAction(type, id, jdbcQueryManager));
-        super.deleteById(type, id);
         persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(type, id));
         persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(type, id));
     }
@@ -63,13 +61,14 @@ public class CacheableSession extends DefaultSession {
     @Override
     public <T> void delete(T entity) {
         actionQueue.add(new DeleteEntityAction(entity, jdbcQueryManager));
-        super.delete(entity);
         persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(entity));
         persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(entity));
     }
     @Override
     public void flush() {
-        actionQueue.execute();
+        persistenceContext.getChangedEntities()
+                .forEach(e -> actionQueue.add(new UpdateEntityAction(e, jdbcQueryManager)));
+        actionQueue.processActions();
     }
 
     @Override
