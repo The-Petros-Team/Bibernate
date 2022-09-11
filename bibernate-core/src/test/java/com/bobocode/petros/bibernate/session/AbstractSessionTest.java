@@ -5,26 +5,18 @@ import com.bobocode.petros.bibernate.entity.Person;
 import com.bobocode.petros.bibernate.exceptions.MappingViolationException;
 import com.bobocode.petros.bibernate.session.factory.DefaultSessionFactory;
 import com.bobocode.petros.bibernate.session.factory.SessionFactory;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class AbstractSessionTest {
@@ -156,7 +148,7 @@ public abstract class AbstractSessionTest {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     void whenPersistWithThenEntitySaved() {
         var session = sessionFactory.openSession();
         var createdAt = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
@@ -182,6 +174,37 @@ public abstract class AbstractSessionTest {
                 .username(genericContainer.getUsername())
                 .password(genericContainer.getPassword())
                 .build(), Set.of("com.bobocode.petros.bibernate.invalidentity")));
+    }
+
+    @Test
+    @Order(8)
+    void whenCallFindOperationWithDifferentlySpelledPropertyNamesThenReturnEntities() {
+        // given
+        var columnName = "last_name";
+        var entityFieldName = "lastName";
+        var createdAt = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
+        final Session session = sessionFactory.openSession();
+        final Person tarasShevchenko = session.persist(new Person()
+                .setFirstName("Taras")
+                .setLastName("Shevchenko")
+                .setDateOfBirth(LocalDate.of(1814, Month.MARCH, 9))
+                .setCreatedAt(createdAt)
+        );
+
+        // assertions & verifications
+        final Collection<Person> persons = session.find(Person.class, columnName, tarasShevchenko.getLastName());
+        assertAll(
+                () -> assertNotNull(persons),
+                () -> assertEquals(1, persons.size()),
+                () -> assertEquals(tarasShevchenko.getLastName(), persons.iterator().next().getLastName())
+        );
+        final Collection<Person> theSamePeople = session.find(Person.class, entityFieldName, tarasShevchenko.getLastName());
+        assertAll(
+                () -> assertNotNull(theSamePeople),
+                () -> assertEquals(1, theSamePeople.size()),
+                () -> assertEquals(tarasShevchenko.getLastName(), theSamePeople.iterator().next().getLastName())
+        );
+        assertEquals(persons.iterator().next(), theSamePeople.iterator().next());
     }
 
     private boolean isAllFieldsNotNull(Person person) {
