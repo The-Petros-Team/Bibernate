@@ -3,13 +3,13 @@ package com.bobocode.petros.bibernate.session.context;
 import com.bobocode.petros.bibernate.exceptions.ReflectionOperationException;
 import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
+import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.NULL_ENTITY_PERSISTENCE_CONTEXT_MSG;
 import static java.util.Objects.requireNonNull;
@@ -19,6 +19,8 @@ import static java.util.Objects.requireNonNull;
  * or do entity snapshot. Also, it provides method
  * than return entities that was changed.
  */
+
+@Slf4j
 public class PersistenceContext {
 
     private Map<EntityKey<?>, Object> entitySnapshots;
@@ -70,6 +72,39 @@ public class PersistenceContext {
                 .toList();
     }
 
+    public Object removeEntityFromCacheByEntityKey(EntityKey<?> entityKey) {
+        return cache.remove(entityKey);
+    }
+
+    public Object removeEntityFromSnapshotByEntityKey(EntityKey<?> entityKey) {
+        return entitySnapshots.remove(entityKey);
+    }
+
+    public <T> Optional<T> getEntityFromCacheById(Class<T> entityType, Object id) {
+        return Optional.ofNullable(entityType.cast(cache.get(new EntityKey<>(entityType, id))));
+    }
+
+    public <T> Collection<T> getEntitiesCollectionFromCacheByProperty(Class<T> entityType, String propertyName, Object value) {
+        return cache.values()
+                .stream()
+                .filter(entity -> entity.getClass().isAssignableFrom(entityType))
+                .filter(entity -> compareEntityByProperty(entity, propertyName, value))
+                .map(entityType::cast)
+                .collect(Collectors.toSet());
+    }
+
+    private boolean compareEntityByProperty(Object entity, String propertyName, Object propertyValue) {
+        try {
+            Field field = entity.getClass().getDeclaredField(propertyName);
+            field.setAccessible(true);
+            var value = field.get(entity);
+            return value.equals(propertyValue);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            log.error(String.format("Cannot get field %s from entity %s", propertyName, entity));
+            return false;
+        }
+    }
+
     private boolean isNotUpdated(Map.Entry<EntityKey<?>, Object> entry) {
         return Arrays.stream(entry.getValue().getClass().getDeclaredFields())
                 .anyMatch(Predicate.not(field -> {
@@ -100,7 +135,7 @@ public class PersistenceContext {
                     });
             return replica;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                NoSuchMethodException e) {
+                 NoSuchMethodException e) {
             throw new ReflectionOperationException(e.getMessage(), e);
         }
     }

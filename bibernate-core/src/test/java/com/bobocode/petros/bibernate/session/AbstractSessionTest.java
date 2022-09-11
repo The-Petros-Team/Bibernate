@@ -182,12 +182,13 @@ public abstract class AbstractSessionTest {
         // given
         var columnName = "last_name";
         var entityFieldName = "lastName";
+        var createdAt = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
         final Session session = sessionFactory.openSession();
         final Person tarasShevchenko = session.persist(new Person()
                 .setFirstName("Taras")
                 .setLastName("Shevchenko")
                 .setDateOfBirth(LocalDate.of(1814, Month.MARCH, 9))
-                .setCreatedAt(LocalDateTime.now())
+                .setCreatedAt(createdAt)
         );
 
         // assertions & verifications
@@ -203,7 +204,7 @@ public abstract class AbstractSessionTest {
                 () -> assertEquals(1, theSamePeople.size()),
                 () -> assertEquals(tarasShevchenko.getLastName(), theSamePeople.iterator().next().getLastName())
         );
-        assertEquals(persons, theSamePeople);
+        assertEquals(persons.iterator().next(), theSamePeople.iterator().next());
     }
 
     private boolean isAllFieldsNotNull(Person person) {
