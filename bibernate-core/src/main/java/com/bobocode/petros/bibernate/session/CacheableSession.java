@@ -2,7 +2,6 @@ package com.bobocode.petros.bibernate.session;
 
 import com.bobocode.petros.bibernate.session.context.PersistenceContext;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
-import com.bobocode.petros.bibernate.transaction.Transaction;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 
 import java.util.Collection;
@@ -26,15 +25,26 @@ public class CacheableSession extends DefaultSession {
 
     @Override
     public <T> Optional<T> findById(Class<T> type, Object id) {
-        return persistenceContext.getEntityFromCacheById(type, id).or(() -> super.findById(type, id));
+        return persistenceContext.getEntityFromCacheById(type, id).or(() -> {
+            Optional<T> entity = super.findById(type, id);
+            entity.ifPresent(persistenceContext::addToCache);
+            entity.ifPresent(persistenceContext::addSnapshot);
+            return entity;
+        });
     }
 
     @Override
     public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
         Collection<T> cachedEntities = persistenceContext.getEntitiesCollectionFromCacheByProperty(type, propertyName, value);
-        return cachedEntities.isEmpty() ?
-                super.find(type, propertyName, value) :
-                cachedEntities;
+        if (cachedEntities.isEmpty()) {
+            Collection<T> entityCollection = super.find(type, propertyName, value);
+            entityCollection.forEach(entity -> {
+                persistenceContext.addSnapshot(entity);
+                persistenceContext.addToCache(entity);
+            });
+            return entityCollection;
+        }
+        return cachedEntities;
     }
 
     @Override
@@ -57,21 +67,6 @@ public class CacheableSession extends DefaultSession {
         super.delete(entity);
         persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(entity));
         persistenceContext.removeEntityFromSnapshotByEntityKey(EntityUtils.createEntityKey(entity));
-    }
-
-    @Override
-    public <T> Query<T> createQuery(String sql) {
-        return super.createQuery(sql);
-    }
-
-    @Override
-    public <T> Query<T> createQuery(String sql, Class<T> type) {
-        return super.createQuery(sql, type);
-    }
-
-    @Override
-    public Transaction getTransaction() {
-        return super.getTransaction();
     }
 
     @Override
