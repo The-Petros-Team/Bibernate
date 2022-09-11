@@ -2,9 +2,11 @@ package com.bobocode.petros.bibernate.session.action;
 
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@EqualsAndHashCode(exclude = "jdbcQueryManager")
 public class DeleteEntityAction implements EntityAction {
     private final Class<?> type;
     private final Object id;

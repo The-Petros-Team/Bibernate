@@ -1,7 +1,5 @@
 package com.bobocode.petros.bibernate.session.action;
 
-import com.bobocode.petros.bibernate.session.context.PersistenceContext;
-import com.bobocode.petros.bibernate.utils.EntityUtils;
 import lombok.experimental.Delegate;
 
 import java.util.PriorityQueue;
@@ -11,24 +9,30 @@ import static java.util.Comparator.comparing;
 
 public class ActionQueue implements Queue<EntityAction> {
 
-    @Delegate
+    @Delegate(excludes = Add.class)
     private final Queue<EntityAction> queue;
-    private final PersistenceContext persistenceContext;
 
-    public ActionQueue(PersistenceContext persistenceContext) {
+    public ActionQueue() {
         this.queue = new PriorityQueue<>(comparing(EntityAction::priority));
-        this.persistenceContext = persistenceContext;
     }
 
     public void processActions() {
         while (!queue.isEmpty()) {
             var action = queue.poll();
-            if (action instanceof UpdateEntityAction updateEntityAction) {
-                var entityToUpdate = updateEntityAction.getEntity();
-
-//                persistenceContext.getEntityFromCacheById()createEntityKey(entityToUpdate)
-            }
             action.execute();
         }
+    }
+
+    @Override
+    public boolean add(EntityAction action) {
+        if (queue.contains(action)) {
+            return false;
+        } else {
+            return queue.add(action);
+        }
+    }
+
+    private interface Add {
+        boolean add(EntityAction action);
     }
 }
