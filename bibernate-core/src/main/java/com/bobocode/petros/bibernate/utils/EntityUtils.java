@@ -10,6 +10,7 @@ import com.bobocode.petros.bibernate.session.EntityKey;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -18,18 +19,16 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.UNRESOLVABLE_PROPERTY_MESSAGE;
 
 /**
  * Utility class that provides some generic operations on entities.
  */
+@Slf4j
 @UtilityClass
 public class EntityUtils {
 
@@ -194,7 +193,7 @@ public class EntityUtils {
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
-                NoSuchMethodException | NoSuchFieldException e) {
+                 NoSuchMethodException | NoSuchFieldException e) {
             throw new ReflectionOperationException(e.getMessage(), e);
         }
     }
@@ -271,6 +270,34 @@ public class EntityUtils {
                     .map(column -> column + " = ?")
                     .collect(Collectors.joining(", "));
         }
+    }
+
+    /**
+     * Helps to resolve a given property for a given entity class. If property name is equal to column name, like
+     * 'first_name' it should be resolved correctly as well as the case, then property name equals to entity field
+     * name, like 'firstName', so this case is also handled.
+     * It means, that it is possible to pass a property name in both given forms and achieve the same result.
+     *
+     * @param entityClass  entity class
+     * @param propertyName property name
+     * @param <T>          generic type
+     * @return property name reflected in database
+     */
+    public <T> String resolveEntityColumnByPropertyName(final Class<T> entityClass, final String propertyName) {
+        String result;
+        try {
+            final Field field = entityClass.getDeclaredField(propertyName);
+            result = EntityUtils.getColumnName(field);
+        } catch (NoSuchFieldException e) {
+            log.warn("Class '{}' doesn't have a field named '{}'. Analyzing class mappings...", entityClass.getName(), propertyName);
+            result = EntityUtils.getColumnNames(EntityUtils.getEntityFields(entityClass))
+                    .stream()
+                    .filter(column -> column.equals(propertyName))
+                    .findAny()
+                    .orElseThrow(() -> new ReflectionOperationException(String.format(UNRESOLVABLE_PROPERTY_MESSAGE, propertyName, entityClass.getName())));
+            log.info("Resolved a field '{}' in class '{}'", result, entityClass.getName());
+        }
+        return result;
     }
 
     /**

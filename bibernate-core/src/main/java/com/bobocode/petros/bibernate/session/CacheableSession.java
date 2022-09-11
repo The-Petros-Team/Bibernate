@@ -1,6 +1,9 @@
 package com.bobocode.petros.bibernate.session;
 
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
+import com.bobocode.petros.bibernate.utils.EntityUtils;
+
+import java.util.Collection;
 
 public class CacheableSession extends DefaultSession {
 
@@ -11,11 +14,8 @@ public class CacheableSession extends DefaultSession {
         super(jdbcQueryManager);
 //        this.persistenceContext = new PersistenceContext();
     }
-/*
-    This section is commented due to PMD violation. Since these methods will be updated it was decided to just comment them.
-    In case some methods won't be realy overriden - please remove them to avoid PMD violations
 
-    @Override
+    /*@Override
     public <T> T persist(T entity) {
         return super.persist(entity);
     }
@@ -23,14 +23,15 @@ public class CacheableSession extends DefaultSession {
     @Override
     public <T> Optional<T> findById(Class<T> type, Object id) {
         return super.findById(type, id);
-    }
+    }*/
 
     @Override
     public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
-        return super.find(type, propertyName, value);
+        final String columnName = EntityUtils.resolveEntityColumnByPropertyName(type, propertyName);
+        return super.find(type, columnName, value);
     }
 
-    @Override
+    /*@Override
     public <T> T update(T entity) {
         return super.update(entity);
     }
