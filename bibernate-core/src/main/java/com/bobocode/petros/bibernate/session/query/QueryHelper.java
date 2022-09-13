@@ -4,6 +4,7 @@ import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.session.query.enums.QueryType;
 import com.bobocode.petros.bibernate.session.query.enums.SqlOperator;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,6 +12,7 @@ import java.util.Objects;
 /**
  * Helper class that is used to build SQL queries for the statically specified parameters.
  */
+@Slf4j
 public class QueryHelper {
 
     /**
@@ -75,6 +77,7 @@ public class QueryHelper {
                     String.format(" %s %s", SqlOperator.WHERE.getValue(), EntityUtils.getMappedQueryColumns(entityClass, true))
             );
         }
+        log.debug("Built query for class- {}, query type - {}, restrictions - {}: {}", entityClass, queryType, restrictions, sql);
         return sql;
     }
 }
