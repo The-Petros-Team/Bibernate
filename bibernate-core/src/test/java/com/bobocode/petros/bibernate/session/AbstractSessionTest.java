@@ -3,9 +3,15 @@ package com.bobocode.petros.bibernate.session;
 import com.bobocode.petros.bibernate.configuration.BasicDataSourceConfiguration;
 import com.bobocode.petros.bibernate.entity.Person;
 import com.bobocode.petros.bibernate.exceptions.MappingViolationException;
+import com.bobocode.petros.bibernate.exceptions.SessionIsClosedException;
 import com.bobocode.petros.bibernate.session.factory.DefaultSessionFactory;
 import com.bobocode.petros.bibernate.session.factory.SessionFactory;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import java.math.BigDecimal;
@@ -16,7 +22,12 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class AbstractSessionTest {
@@ -209,7 +220,7 @@ public abstract class AbstractSessionTest {
 
     @Test
     @Order(9)
-    void test() {
+    void whenEntityPersinstThenIdIsNotNull() {
         var session = sessionFactory.openSession();
         session.getTransaction().begin();
         var createdAt = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
@@ -221,11 +232,14 @@ public abstract class AbstractSessionTest {
                 .setCreatedAt(createdAt);
         session.persist(newPerson);
         assertNotNull(newPerson.getId());
-        session.persist(newPerson);
-        session.delete(newPerson);
-        newPerson.setFirstName("porosiatko");
-        session.persist(newPerson);
-        session.getTransaction().commit();
+    }
+
+    @Test
+    @Order(10)
+    public void whenMethodCallOnClosedSessionThenThrowSessionIsClosedException() {
+        var session = sessionFactory.openSession();
+        session.close();
+        assertThrows(SessionIsClosedException.class, () -> session.deleteById(Person.class, 1));
     }
 
     private boolean isAllFieldsNotNull(Person person) {
