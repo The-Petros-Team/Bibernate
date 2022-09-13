@@ -207,6 +207,27 @@ public abstract class AbstractSessionTest {
         assertEquals(persons.iterator().next(), theSamePeople.iterator().next());
     }
 
+    @Test
+    @Order(9)
+    void test() {
+        var session = sessionFactory.openSession();
+        session.getTransaction().begin();
+        var createdAt = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
+        var newPerson = new Person()
+                .setFirstName("newFirstName")
+                .setLastName("newLastName")
+                .setSalary(new BigDecimal("555.00"))
+                .setDateOfBirth(LocalDate.of(2000, 1, 1))
+                .setCreatedAt(createdAt);
+        session.persist(newPerson);
+        assertNotNull(newPerson.getId());
+        session.persist(newPerson);
+        session.delete(newPerson);
+        newPerson.setFirstName("porosiatko");
+        session.persist(newPerson);
+        session.getTransaction().commit();
+    }
+
     private boolean isAllFieldsNotNull(Person person) {
         return Objects.nonNull(person.getId())
                 && Objects.nonNull(person.getFirstName())

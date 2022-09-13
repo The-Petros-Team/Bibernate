@@ -9,11 +9,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class DefaultSession implements Session {
+abstract class DefaultSession implements Session {
 
-    private final JdbcQueryManager jdbcQueryManager;
+    protected final JdbcQueryManager jdbcQueryManager;
 
-    public DefaultSession(final JdbcQueryManager jdbcQueryManager) {
+    protected DefaultSession(final JdbcQueryManager jdbcQueryManager) {
         this.jdbcQueryManager = jdbcQueryManager;
     }
 
