@@ -13,8 +13,19 @@ import java.util.List;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
+/**
+ * implementation of {@link StatementStrategy} that applies configuration to insert-based prepared statement.
+ */
 public class InsertStatementStrategy implements StatementStrategy {
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param connection    db connection
+     * @param sqlQuery      sql query
+     * @param configOptions statement configuration options
+     * @return configured instance of {@link PreparedStatement}
+     */
     @Override
     public PreparedStatement configure(final Connection connection,
                                        final String sqlQuery,

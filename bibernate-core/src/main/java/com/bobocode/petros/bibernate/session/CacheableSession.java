@@ -67,7 +67,7 @@ public class CacheableSession extends DefaultSession {
             Collection<T> cachedEntities = persistenceContext.getEntitiesCollectionFromCacheByProperty(type, propertyName,
                     value);
             if (cachedEntities.isEmpty()) {
-                Collection<T> entityCollection = super.find(type, propertyName, value);
+                Collection<T> entityCollection = super.find(type, EntityUtils.resolveEntityColumnByPropertyName(type, propertyName), value);
                 entityCollection.forEach(entity -> {
                     persistenceContext.addSnapshot(entity);
                     persistenceContext.addToCache(entity);

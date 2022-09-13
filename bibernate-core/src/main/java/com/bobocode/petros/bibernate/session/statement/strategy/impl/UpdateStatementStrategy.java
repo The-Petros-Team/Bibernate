@@ -11,8 +11,19 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementation of {@link StatementStrategy} that applies configuration to update-based prepare statement.
+ */
 public class UpdateStatementStrategy implements StatementStrategy {
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param connection    db connection
+     * @param sqlQuery      sql query
+     * @param configOptions statement configuration options
+     * @return configured instance of {@link PreparedStatement}
+     */
     @Override
     public PreparedStatement configure(final Connection connection,
                                        final String sqlQuery,
@@ -23,7 +34,6 @@ public class UpdateStatementStrategy implements StatementStrategy {
             int columnNumber = 1;
             for (final Field field : fields) {
                 field.setAccessible(true);
-                // TODO check if it is allowed to set null value for column, if not -> skip or throw exception ?
                 statement.setObject(columnNumber++, field.get(configOptions.getEntity()));
             }
             final Field idField = EntityUtils.getIdField(configOptions.getEntityClass());

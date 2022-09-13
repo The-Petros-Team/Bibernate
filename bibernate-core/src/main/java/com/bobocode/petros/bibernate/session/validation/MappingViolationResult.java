@@ -6,6 +6,10 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+/**
+ * Simple wrapper that holds an error message if any and a class name that was the reason error message was raised
+ * against.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
