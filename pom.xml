@@ -123,7 +123,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.15.0</version> <!-- or use version from pluginManagement -->
+                <version>3.19.0</version> <!-- or use version from pluginManagement -->
                 <configuration>
                     <!-- failOnViolation is actually true by default, but can be disabled -->
                     <failOnViolation>true</failOnViolation>
@@ -180,6 +180,10 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
             <id>central</id>
             <name>petros-libs-release</name>
             <url>https://petros.jfrog.io/artifactory/petros-libs-release</url>
