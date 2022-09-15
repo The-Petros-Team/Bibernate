@@ -22,4 +22,4 @@ jobs:
           distribution: 'adopt'
           cache: maven
       - name: Build with Maven
-        run: mvn -B clean package --file pom.xml -DproxySet=true -DproxyHost=78.154.180.52 -DproxyPort=81
+        run: mvn -B clean package --file pom.xml -DproxySet=true -DproxyHost=139.59.102.160 -DproxyPort=443 -Dhttps.protocols=TLSv1.2
