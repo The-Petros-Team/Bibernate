@@ -59,7 +59,7 @@ public class CacheableSession extends DefaultSession {
     @Override
     public <T> Optional<T> findById(Class<T> type, Object id) {
         return executeWithIsClosedCheck(() -> persistenceContext.getEntityFromCacheById(type, id).or(() -> {
-            log.debug("Didn't find an entity with id - {}, of type - {}, in persistence context, executing query to DB", id, type);
+            log.debug("Entity with id - {} of type - {} is not found in persistence context, executing query to DB", id, type);
             Optional<T> entity = super.findById(type, id);
             entity.ifPresent(persistenceContext::addToCache);
             entity.ifPresent(persistenceContext::addSnapshot);
@@ -75,7 +75,7 @@ public class CacheableSession extends DefaultSession {
             log.debug("Found {} entities in persistence context for type - {}, where {}={}", cachedEntities.size(), type, propertyName, value);
             if (cachedEntities.isEmpty()) {
                 Collection<T> entityCollection = super.find(type, propertyName, value);
-                log.debug("Found {} entities in DB for type - {}, where {}={}", cachedEntities.size(), type, propertyName, value);
+                log.debug("Found {} entities in DB of type - {}, where {}={}", cachedEntities.size(), type, propertyName, value);
                 entityCollection.forEach(entity -> {
                     persistenceContext.addSnapshot(entity);
                     persistenceContext.addToCache(entity);
@@ -101,11 +101,11 @@ public class CacheableSession extends DefaultSession {
     public <T> void deleteById(Class<T> type, Object id) {
         executeWithIsClosedCheck(() -> {
             if (getTransaction().isClosed()) {
-                log.debug("Transaction is closed, deleting entity with id - {} of type {}", id, type);
+                log.debug("Deleting entity with id - {} of type {}", id, type);
                 super.deleteById(type, id);
             } else {
                 var deleteAction = new DeleteEntityAction(type, id, jdbcQueryManager);
-                log.debug("Transaction is open, add delete action {}", deleteAction);
+                log.debug("Adding delete action {}", deleteAction);
                 actionQueue.add(deleteAction);
             }
             persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(type, id));
@@ -118,11 +118,11 @@ public class CacheableSession extends DefaultSession {
     public <T> void delete(T entity) {
         executeWithIsClosedCheck(() -> {
             if (getTransaction().isClosed()) {
-                log.debug("Transaction is closed, deleting entity - {}", entity);
+                log.debug("Deleting entity - {}", entity);
                 super.delete(entity);
             } else {
                 var deleteAction = new DeleteEntityAction(entity, jdbcQueryManager);
-                log.debug("Transaction is open, add delete action {}", deleteAction);
+                log.debug("Adding delete action {}", deleteAction);
                 actionQueue.add(deleteAction);
             }
             persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(entity));

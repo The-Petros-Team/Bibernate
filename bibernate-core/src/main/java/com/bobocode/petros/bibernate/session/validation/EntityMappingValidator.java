@@ -48,7 +48,7 @@ public class EntityMappingValidator {
             var metadata = connection.getMetaData();
             String databaseName = connection.getCatalog();
             String schema = connection.getSchema();
-            log.debug("Validating entities int database - {}, schema - {}", databaseName, schema);
+            log.debug("Validating entities in database - {}, schema - {}", databaseName, schema);
             var tables = getTableNames(metadata, databaseName, schema);
             for (Class<?> entity : entities) {
                 log.trace("Validate entity class: {}", entity);

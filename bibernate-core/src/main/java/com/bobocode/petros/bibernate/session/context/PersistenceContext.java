@@ -42,7 +42,7 @@ public class PersistenceContext {
         requireNonNull(entity, String.format(NULL_ENTITY_PERSISTENCE_CONTEXT_MSG, "Snapshot entity "));
         var key = EntityUtils.createEntityKey(entity);
         entitySnapshots.put(key, replicateObject(entity));
-        log.trace("Entity {} added to context snapshots", entity);
+        log.trace("Added entity snapshot {} to persistence context", entity);
     }
 
     /**
@@ -55,7 +55,7 @@ public class PersistenceContext {
         requireNonNull(entity, String.format(NULL_ENTITY_PERSISTENCE_CONTEXT_MSG, "Cacheable entity "));
         var key = EntityUtils.createEntityKey(entity);
         cache.put(key, entity);
-        log.trace("Entity {} added to context cache", entity);
+        log.trace("Entity {} added to persistence context cache", entity);
     }
 
     /**
@@ -77,12 +77,12 @@ public class PersistenceContext {
     }
 
     public Object removeEntityFromCacheByEntityKey(EntityKey<?> entityKey) {
-        log.trace("Removing entity from context cache by key: {}", entityKey);
+        log.trace("Removing entity from persistence context cache by key: {}", entityKey);
         return cache.remove(entityKey);
     }
 
     public Object removeEntityFromSnapshotByEntityKey(EntityKey<?> entityKey) {
-        log.trace("Removing entity from context snapshots by key: {}", entityKey);
+        log.trace("Removing entity snapshot from persistence context by key: {}", entityKey);
         return entitySnapshots.remove(entityKey);
     }
 

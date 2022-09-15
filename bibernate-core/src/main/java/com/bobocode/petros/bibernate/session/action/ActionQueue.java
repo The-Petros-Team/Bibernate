@@ -29,7 +29,7 @@ public class ActionQueue implements Queue<EntityAction> {
     @Override
     public boolean add(EntityAction action) {
         if (queue.contains(action)) {
-            log.debug("Entity action {} already exist.", action);
+            log.debug("Entity action {} already exist. Skipping...", action);
             return false;
         } else {
             log.debug("Adding action {} to queue.", action);
