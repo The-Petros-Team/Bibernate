@@ -7,6 +7,10 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.util.Objects;
 
+/**
+ * Configurer class that is responsible for data source initialization. Data source configuration provided by the
+ * user will be wrapped into {@link HikariDataSource} and can use available features, like thread pool etc.
+ */
 class HikariPooledDataSourceConfigurer {
 
     private final DataSource dataSource;

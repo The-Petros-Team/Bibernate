@@ -12,8 +12,19 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementation of {@link StatementStrategy} that applies configuration to a select-based prepare statement.
+ */
 public class SelectStatementStrategy implements StatementStrategy {
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param connection    db connection
+     * @param sqlQuery      sql query
+     * @param configOptions statement configuration options
+     * @return configured instance of {@link PreparedStatement}
+     */
     @Override
     public PreparedStatement configure(final Connection connection,
                                        final String sqlQuery,

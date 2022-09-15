@@ -1,5 +1,8 @@
 package com.bobocode.petros.bibernate.exceptions;
 
+/**
+ * Keeps exception messages that are used in a framework.
+ */
 public enum ExceptionMessages {
 
     ;
