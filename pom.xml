@@ -148,14 +148,9 @@
     <distributionManagement>
         <repository>
             <id>central</id>
-            <name>petros-libs-release</name>
-            <url>https://petros.jfrog.io/artifactory/petros-libs-release</url>
+            <name>a0jr4byu8bygb-artifactory-primary-0-releases</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-release</url>
         </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>petros-libs-snapshot</name>
-            <url>https://petros.jfrog.io/artifactory/petros-libs-snapshot</url>
-        </snapshotRepository>
     </distributionManagement>
 
     <repositories>
@@ -164,14 +159,14 @@
                 <enabled>false</enabled>
             </snapshots>
             <id>central</id>
-            <name>petros-libs-release</name>
-            <url>https://petros.jfrog.io/artifactory/petros-libs-release</url>
+            <name>petros-bibernate-libs-release</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-release</url>
         </repository>
         <repository>
             <snapshots />
             <id>snapshots</id>
-            <name>petros-libs-snapshot</name>
-            <url>https://petros.jfrog.io/artifactory/petros-libs-snapshot</url>
+            <name>petros-bibernate-libs-snapshot</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-snapshot</url>
         </repository>
     </repositories>
 
@@ -180,19 +175,15 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
             <id>central</id>
-            <name>petros-libs-release</name>
-            <url>https://petros.jfrog.io/artifactory/petros-libs-release</url>
+            <name>petros-bibernate-libs-release</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-release</url>
         </pluginRepository>
         <pluginRepository>
             <snapshots />
             <id>snapshots</id>
-            <name>petros-libs-snapshot</name>
-            <url>https://petros.jfrog.io/artifactory/petros-libs-snapshot</url>
+            <name>petros-bibernate-libs-snapshot</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-snapshot</url>
         </pluginRepository>
     </pluginRepositories>
 </project>
