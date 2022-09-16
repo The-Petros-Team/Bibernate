@@ -5,6 +5,7 @@ import com.bobocode.petros.bibernate.exceptions.JdbcOperationException;
 import com.bobocode.petros.bibernate.scanner.EntityScanner;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
@@ -26,6 +27,7 @@ import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.MAPPING
 import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.TABLES_METADATA_MESSAGE;
 import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.TABLE_DOESNT_EXIST_MSG;
 
+@Slf4j
 @UtilityClass
 public class EntityMappingValidator {
     private static final String TABLE_NAME_LABEL = "TABLE_NAME";
@@ -46,9 +48,10 @@ public class EntityMappingValidator {
             var metadata = connection.getMetaData();
             String databaseName = connection.getCatalog();
             String schema = connection.getSchema();
-
+            log.debug("Validating entities in database - {}, schema - {}", databaseName, schema);
             var tables = getTableNames(metadata, databaseName, schema);
             for (Class<?> entity : entities) {
+                log.trace("Validate entity class: {}", entity);
                 var tableName = EntityUtils.getTableName(entity);
                 if (tables.contains(tableName)) {
                     var tableFields = getTableFields(databaseName, schema, tableName, metadata);

@@ -4,13 +4,17 @@ import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.utils.EntityUtils;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementation of {@link EntityAction} that represents delete operation that is supposed to be executed against
  * a given entity.
  */
+@Slf4j
 @RequiredArgsConstructor
 @EqualsAndHashCode(exclude = "jdbcQueryManager")
+@ToString(of = {"type", "id"})
 public class DeleteEntityAction implements EntityAction {
 
     private final Class<?> type;
@@ -28,6 +32,7 @@ public class DeleteEntityAction implements EntityAction {
      */
     @Override
     public void execute() {
+        log.debug("Executing delete action: type - {}, id - {}", type, id);
         jdbcQueryManager.deleteById(type, id);
     }
 

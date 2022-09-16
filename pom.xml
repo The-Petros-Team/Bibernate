@@ -89,6 +89,7 @@
                     <append>true</append>
                     <excludes>
                         <exclude>com/bobocode/petros/bibernate/exceptions/*</exclude>
+                        <exclude>com/bobocode/petros/bibernate/session/action/*</exclude>
                     </excludes>
                     <rules>
                         <rule>
