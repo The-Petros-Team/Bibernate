@@ -123,7 +123,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.19.0</version> <!-- or use version from pluginManagement -->
+                <version>3.15.0</version> <!-- or use version from pluginManagement -->
                 <configuration>
                     <!-- failOnViolation is actually true by default, but can be disabled -->
                     <failOnViolation>true</failOnViolation>
@@ -151,6 +151,11 @@
             <name>petros-bibernate-libs-release</name>
             <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-release</url>
         </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>petros-bibernate-libs-snapshot</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-snapshot</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <repositories>
