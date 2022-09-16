@@ -1,5 +1,8 @@
 package com.bobocode.petros.bibernate.exceptions;
 
+/**
+ * Can be thrown if any reflection-related error occurred.
+ */
 public class ReflectionOperationException extends BibernateException {
 
     public ReflectionOperationException(String message) {

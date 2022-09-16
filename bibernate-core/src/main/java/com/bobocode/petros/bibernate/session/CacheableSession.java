@@ -15,8 +15,13 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+/**
+ * Implementation of {@link DefaultSession} that brings additional logic, like caching, action queueing, dirty
+ * checking etc.
+ */
 @Slf4j
 public class CacheableSession extends DefaultSession {
+
     private PersistenceContext persistenceContext;
     private ActionQueue actionQueue;
     private boolean isClosed;
@@ -27,6 +32,13 @@ public class CacheableSession extends DefaultSession {
         this.actionQueue = new ActionQueue();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param entity persistable entity
+     * @param <T>    generic type
+     * @return persisted entity (entity with primary key)
+     */
     @Override
     public <T> T persist(T entity) {
         return executeWithIsClosedCheck(() -> {
@@ -56,6 +68,14 @@ public class CacheableSession extends DefaultSession {
         return persistedEntity;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param type entity class
+     * @param id   id (primary key)
+     * @param <T>  generic type
+     * @return entity wrapper in {@link Optional}
+     */
     @Override
     public <T> Optional<T> findById(Class<T> type, Object id) {
         return executeWithIsClosedCheck(() -> persistenceContext.getEntityFromCacheById(type, id).or(() -> {
@@ -67,6 +87,15 @@ public class CacheableSession extends DefaultSession {
         }));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param type         entity class
+     * @param propertyName property name
+     * @param value        property value
+     * @param <T>          generic type
+     * @return collection of entities
+     */
     @Override
     public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
         return executeWithIsClosedCheck(() -> {
@@ -74,7 +103,7 @@ public class CacheableSession extends DefaultSession {
                     value);
             log.debug("Found {} entities in persistence context for type - {}, where {}={}", cachedEntities.size(), type, propertyName, value);
             if (cachedEntities.isEmpty()) {
-                Collection<T> entityCollection = super.find(type, propertyName, value);
+                Collection<T> entityCollection = super.find(type, EntityUtils.resolveEntityColumnByPropertyName(type, propertyName), value);
                 log.debug("Found {} entities in DB of type - {}, where {}={}", cachedEntities.size(), type, propertyName, value);
                 entityCollection.forEach(entity -> {
                     persistenceContext.addSnapshot(entity);
@@ -86,6 +115,13 @@ public class CacheableSession extends DefaultSession {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param entity entity to update
+     * @param <T>    generic type
+     * @return id (primary key)
+     */
     @Override
     public <T> T update(T entity) {
         return executeWithIsClosedCheck(() -> {
@@ -97,6 +133,13 @@ public class CacheableSession extends DefaultSession {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param type entity class
+     * @param id   id (primary key)
+     * @param <T>  generic type
+     */
     @Override
     public <T> void deleteById(Class<T> type, Object id) {
         executeWithIsClosedCheck(() -> {
@@ -114,6 +157,12 @@ public class CacheableSession extends DefaultSession {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param entity entity to delete
+     * @param <T>    generic type
+     */
     @Override
     public <T> void delete(T entity) {
         executeWithIsClosedCheck(() -> {
@@ -131,6 +180,11 @@ public class CacheableSession extends DefaultSession {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return instance of {@link Transaction}
+     */
     @Override
     public Transaction getTransaction() {
         return executeWithIsClosedCheck(() -> {
@@ -140,6 +194,9 @@ public class CacheableSession extends DefaultSession {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void flush() {
         executeWithIsClosedCheck(() -> {
@@ -151,6 +208,9 @@ public class CacheableSession extends DefaultSession {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void close() {
         executeWithIsClosedCheck(() -> {

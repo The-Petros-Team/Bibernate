@@ -4,6 +4,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Implementation of {@link DataSourceConfiguration}.
+ */
 @Getter
 @Setter
 @Builder

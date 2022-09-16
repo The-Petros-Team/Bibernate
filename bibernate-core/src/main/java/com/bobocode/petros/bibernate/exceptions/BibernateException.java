@@ -1,5 +1,8 @@
 package com.bobocode.petros.bibernate.exceptions;
 
+/**
+ * Basic framework-level exception.
+ */
 public class BibernateException extends RuntimeException {
 
     public BibernateException(String message) {

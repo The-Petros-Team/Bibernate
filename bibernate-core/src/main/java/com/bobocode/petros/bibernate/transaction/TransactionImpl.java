@@ -9,6 +9,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 
+/**
+ * Implementation of {@link Transaction}.
+ */
 @Slf4j
 public class TransactionImpl implements Transaction {
 
@@ -22,6 +25,9 @@ public class TransactionImpl implements Transaction {
         this.connection = connection;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void begin() {
         try {
@@ -33,6 +39,9 @@ public class TransactionImpl implements Transaction {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void commit() {
         try (connection) {
@@ -47,6 +56,9 @@ public class TransactionImpl implements Transaction {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void rollback() {
         try (connection) {
@@ -61,6 +73,11 @@ public class TransactionImpl implements Transaction {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return true if transaction is closed or false otherwise
+     */
     @Override
     public boolean isClosed() {
         return !this.isOpened;
