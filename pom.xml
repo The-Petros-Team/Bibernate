@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.bobocode</groupId>
+    <groupId>com.bobocode.petros</groupId>
     <artifactId>bibernate</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -21,9 +21,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <lombok.version>1.18.24</lombok.version>
         <HikariCP.version>5.0.1</HikariCP.version>
-        <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
-        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
-        <maven-pmd-plugin.version>3.19.0</maven-pmd-plugin.version>
         <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
         <mockito.version>4.6.1</mockito.version>
         <maven.test.skip>false</maven.test.skip>
@@ -60,12 +57,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.4.199</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>${HikariCP.version}</version>
@@ -77,18 +68,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
+                <version>3.0.0-M6</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco-maven-plugin.version}</version>
+                <version>0.8.8</version>
                 <configuration>
                     <skip>${maven.test.skip}</skip>
                     <output>file</output>
                     <append>true</append>
                     <excludes>
                         <exclude>com/bobocode/petros/bibernate/exceptions/*</exclude>
+                        <exclude>com/bobocode/petros/bibernate/utils/*</exclude>
+                        <exclude>com/bobocode/petros/bibernate/annotations/*</exclude>
                         <exclude>com/bobocode/petros/bibernate/session/action/*</exclude>
                     </excludes>
                     <rules>
@@ -130,7 +123,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>${maven-pmd-plugin.version}</version> <!-- or use version from pluginManagement -->
+                <version>3.15.0</version> <!-- or use version from pluginManagement -->
                 <configuration>
                     <!-- failOnViolation is actually true by default, but can be disabled -->
                     <failOnViolation>true</failOnViolation>
@@ -151,4 +144,51 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>bibernate-central</id>
+            <name>petros-bibernate-libs-release</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-release</url>
+        </repository>
+        <snapshotRepository>
+            <id>bibernate-snapshots</id>
+            <name>petros-bibernate-libs-snapshot</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-snapshot</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bibernate-central</id>
+            <name>petros-bibernate-libs-release</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-release</url>
+        </repository>
+        <repository>
+            <snapshots />
+            <id>bibernate-snapshots</id>
+            <name>petros-bibernate-libs-snapshot</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-snapshot</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bibernate-central</id>
+            <name>petros-bibernate-libs-release</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-release</url>
+        </pluginRepository>
+        <pluginRepository>
+            <snapshots />
+            <id>bibernate-snapshots</id>
+            <name>petros-bibernate-libs-snapshot</name>
+            <url>https://petros.jfrog.io/artifactory/petros-bibernate-libs-snapshot</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
