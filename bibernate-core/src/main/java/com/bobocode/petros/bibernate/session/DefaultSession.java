@@ -1,5 +1,6 @@
 package com.bobocode.petros.bibernate.session;
 
+import com.bobocode.petros.bibernate.session.ddl.DdlExecutionResult;
 import com.bobocode.petros.bibernate.session.jdbc.JdbcQueryManager;
 import com.bobocode.petros.bibernate.session.query.condition.Restrictions;
 import com.bobocode.petros.bibernate.transaction.Transaction;
@@ -24,8 +25,8 @@ abstract class DefaultSession implements Session {
      * {@inheritDoc}
      *
      * @param entity persistable entity
+     * @param <T>    generic type
      * @return persisted entity (entity with primary key)
-     * @param <T> generic type
      */
     @Override
     public <T> T persist(T entity) {
@@ -36,9 +37,9 @@ abstract class DefaultSession implements Session {
      * {@inheritDoc}
      *
      * @param type entity class
-     * @param id id (primary key)
+     * @param id   id (primary key)
+     * @param <T>  generic type
      * @return entity wrapper in {@link Optional}
-     * @param <T> generic type
      */
     @Override
     public <T> Optional<T> findById(Class<T> type, Object id) {
@@ -50,11 +51,11 @@ abstract class DefaultSession implements Session {
     /**
      * {@inheritDoc}
      *
-     * @param type entity class
+     * @param type         entity class
      * @param propertyName property name
-     * @param value property value
+     * @param value        property value
+     * @param <T>          generic type
      * @return collection of entities
-     * @param <T> generic type
      */
     @Override
     public <T> Collection<T> find(Class<T> type, String propertyName, Object value) {
@@ -65,8 +66,8 @@ abstract class DefaultSession implements Session {
      * {@inheritDoc}
      *
      * @param entity entity to update
+     * @param <T>    generic type
      * @return updated entity
-     * @param <T> generic type
      */
     @Override
     public <T> T update(T entity) {
@@ -77,8 +78,8 @@ abstract class DefaultSession implements Session {
      * {@inheritDoc}
      *
      * @param type entity class
-     * @param id id (primary key)
-     * @param <T> generic type
+     * @param id   id (primary key)
+     * @param <T>  generic type
      */
     @Override
     public <T> void deleteById(Class<T> type, Object id) {
@@ -89,7 +90,7 @@ abstract class DefaultSession implements Session {
      * {@inheritDoc}
      *
      * @param entity entity to delete
-     * @param <T> generic type
+     * @param <T>    generic type
      */
     @Override
     public <T> void delete(T entity) {
@@ -100,8 +101,8 @@ abstract class DefaultSession implements Session {
      * {@inheritDoc}
      *
      * @param sql query to execute
-     * @return instance of {@link Query}
      * @param <T> generic type
+     * @return instance of {@link Query}
      */
     @Override
     public <T> Query<T> createQuery(String sql) {
@@ -111,10 +112,10 @@ abstract class DefaultSession implements Session {
     /**
      * {@inheritDoc}
      *
-     * @param sql query to execute
+     * @param sql  query to execute
      * @param type result entity class
+     * @param <T>  generic type
      * @return instance of {@link Query}
-     * @param <T> generic type
      */
     @Override
     public <T> Query<T> createQuery(String sql, Class<T> type) {
@@ -137,5 +138,16 @@ abstract class DefaultSession implements Session {
     @Override
     public void close() {
         getTransaction().commit();
+    }
+
+    /**
+     * Runs DDL execution logic.
+     *
+     * @param sql sql script
+     * @return stats
+     */
+    @Override
+    public DdlExecutionResult execute(final String sql) {
+        return this.jdbcQueryManager.execute(sql);
     }
 }
