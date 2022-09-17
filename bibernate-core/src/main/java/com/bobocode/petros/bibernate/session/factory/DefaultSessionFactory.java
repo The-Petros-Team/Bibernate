@@ -14,6 +14,9 @@ import java.util.Set;
 
 import static com.bobocode.petros.bibernate.exceptions.ExceptionMessages.MAPPING_VIOLATION_MESSAGE;
 
+/**
+ * Implementation of {@link SessionFactory}.
+ */
 public class DefaultSessionFactory implements SessionFactory {
 
     private final DataSource dataSource;
@@ -32,6 +35,11 @@ public class DefaultSessionFactory implements SessionFactory {
         this(new HikariPooledDataSourceConfigurer(configuration).getDataSource(), entityPackages);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return instance of {@link Session}
+     */
     @Override
     public Session openSession() {
         return new CacheableSession(new DefaultJdbcQueryManager(dataSource));

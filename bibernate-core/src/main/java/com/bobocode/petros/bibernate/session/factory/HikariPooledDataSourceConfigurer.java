@@ -3,10 +3,16 @@ package com.bobocode.petros.bibernate.session.factory;
 import com.bobocode.petros.bibernate.configuration.DataSourceConfiguration;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 import java.util.Objects;
 
+/**
+ * Configurer class that is responsible for data source initialization. Data source configuration provided by the
+ * user will be wrapped into {@link HikariDataSource} and can use available features, like thread pool etc.
+ */
+@Slf4j
 class HikariPooledDataSourceConfigurer {
 
     private final DataSource dataSource;
@@ -14,6 +20,7 @@ class HikariPooledDataSourceConfigurer {
     HikariPooledDataSourceConfigurer(final DataSourceConfiguration configuration) {
         Objects.requireNonNull(configuration, "Parameter [configuration] must be provided!");
         this.dataSource = configure(configuration);
+        log.info("Data source is configured.");
     }
 
     DataSource getDataSource() {

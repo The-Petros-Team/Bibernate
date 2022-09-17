@@ -8,8 +8,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+/**
+ * Implementation of {@link StatementStrategy} that applies configuration to a delete-based prepare statement.
+ */
 public class DeleteStatementStrategy implements StatementStrategy {
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param connection    db connection
+     * @param sqlQuery      sql query
+     * @param configOptions statement configuration options
+     * @return configured instance of {@link PreparedStatement}
+     */
     @Override
     public PreparedStatement configure(final Connection connection,
                                        final String sqlQuery,

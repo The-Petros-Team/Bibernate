@@ -11,6 +11,9 @@ import com.bobocode.petros.bibernate.session.statement.strategy.impl.UpdateState
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
+/**
+ * Implementation of {@link StatementStrategyResolver}.
+ */
 public class DefaultStatementStrategyResolver implements StatementStrategyResolver {
 
     private final StatementStrategy insertStatementStrategy;
@@ -25,6 +28,15 @@ public class DefaultStatementStrategyResolver implements StatementStrategyResolv
         this.deleteStatementStrategy = new DeleteStatementStrategy();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param queryType     type of sql query
+     * @param connection    db connection
+     * @param sqlQuery      sql query
+     * @param configOptions statement configuration options
+     * @return configured prepared statement
+     */
     public PreparedStatement resolve(final QueryType queryType,
                                      final Connection connection,
                                      final String sqlQuery,
@@ -37,10 +49,18 @@ public class DefaultStatementStrategyResolver implements StatementStrategyResolv
         };
     }
 
+    /**
+     * Static method that returns a singleton instance of {@link DefaultStatementStrategyResolver}.
+     *
+     * @return instance of strategy resolved
+     */
     public static StatementStrategyResolver getInstance() {
         return StatementStrategyResolverHolder.get();
     }
 
+    /**
+     * Enum that holds an instance of strategy resolved and serves as a singleton wrapper.
+     */
     enum StatementStrategyResolverHolder {
 
         ;
