@@ -19,10 +19,6 @@ public interface Session {
 
     <T> void delete(T entity);
 
-    <T> Query<T> createQuery(String sql);
-
-    <T> Query<T> createQuery(String sql, Class<T> type);
-
     Transaction getTransaction();
 
     void flush();

@@ -50,16 +50,6 @@ abstract class DefaultSession implements Session {
     }
 
     @Override
-    public <T> Query<T> createQuery(String sql) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Query<T> createQuery(String sql, Class<T> type) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Transaction getTransaction() {
         return jdbcQueryManager.getTransaction();
     }
