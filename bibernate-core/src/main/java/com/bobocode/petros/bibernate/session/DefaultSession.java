@@ -100,31 +100,6 @@ abstract class DefaultSession implements Session {
     /**
      * {@inheritDoc}
      *
-     * @param sql query to execute
-     * @param <T> generic type
-     * @return instance of {@link Query}
-     */
-    @Override
-    public <T> Query<T> createQuery(String sql) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param sql  query to execute
-     * @param type result entity class
-     * @param <T>  generic type
-     * @return instance of {@link Query}
-     */
-    @Override
-    public <T> Query<T> createQuery(String sql, Class<T> type) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
      * @return instance of {@link Transaction}
      */
     @Override

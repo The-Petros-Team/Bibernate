@@ -198,6 +198,7 @@ public class EntityUtils {
                         setField(entity.getClass().getDeclaredField(field.getName()), entity, value);
                     }
                 }
+                log.trace("Mapped result set to type {}: {}", entityClass, entity);
                 results.add(entity);
             }
             return queryResult;

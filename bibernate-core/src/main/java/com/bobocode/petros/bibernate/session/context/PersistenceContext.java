@@ -42,6 +42,7 @@ public class PersistenceContext {
         requireNonNull(entity, String.format(NULL_ENTITY_PERSISTENCE_CONTEXT_MSG, "Snapshot entity "));
         var key = EntityUtils.createEntityKey(entity);
         entitySnapshots.put(key, replicateObject(entity));
+        log.trace("Added entity snapshot {} to persistence context", entity);
     }
 
     /**
@@ -54,6 +55,7 @@ public class PersistenceContext {
         requireNonNull(entity, String.format(NULL_ENTITY_PERSISTENCE_CONTEXT_MSG, "Cacheable entity "));
         var key = EntityUtils.createEntityKey(entity);
         cache.put(key, entity);
+        log.trace("Entity {} added to persistence context cache", entity);
     }
 
     /**
@@ -66,17 +68,21 @@ public class PersistenceContext {
      * @return list of changed entities
      */
     public List<Object> getChangedEntities() {
-        return cache.entrySet().stream()
+        var changedEntities = cache.entrySet().stream()
                 .filter(this::isNotUpdated)
                 .map(Map.Entry::getValue)
                 .toList();
+        log.debug("Changed entities in persistence context size - {}", changedEntities.size());
+        return changedEntities;
     }
 
     public Object removeEntityFromCacheByEntityKey(EntityKey<?> entityKey) {
+        log.trace("Removing entity from persistence context cache by key: {}", entityKey);
         return cache.remove(entityKey);
     }
 
     public Object removeEntityFromSnapshotByEntityKey(EntityKey<?> entityKey) {
+        log.trace("Removing entity snapshot from persistence context by key: {}", entityKey);
         return entitySnapshots.remove(entityKey);
     }
 
@@ -143,5 +149,6 @@ public class PersistenceContext {
     public void clear() {
         this.entitySnapshots.clear();
         this.cache.clear();
+        log.debug("Persistence context is cleared.");
     }
 }
