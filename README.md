@@ -1,3 +1,5 @@
+![example workflow](https://github.com/The-Petros-Team/Bibernate/actions/workflows/maven.yml/badge.svg)
+
 ## <span style="color:green">Petros Bibernate Framework</span>
 
 Bibernate ORM is a library providing Object/Relational Mapping (ORM) support to applications, libraries, and frameworks.
