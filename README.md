@@ -104,7 +104,7 @@ Snippet to create session
 ```java
 
 SessionFactory sessionFactory=new DefaultSessionFactory(BasicDataSourceConfiguration.builder()
-        .driverClassName(genericContainer.getDriverClassName())
+        .driverClassName("dirver.package") //driver package
         .url(genericContainer.getJdbcUrl())
         .username(genericContainer.getUsername())
         .password(genericContainer.getPassword())

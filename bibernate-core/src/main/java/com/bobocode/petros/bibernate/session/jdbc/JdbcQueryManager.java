@@ -1,5 +1,6 @@
 package com.bobocode.petros.bibernate.session.jdbc;
 
+import com.bobocode.petros.bibernate.session.ddl.DdlExecutionResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
 import com.bobocode.petros.bibernate.session.query.condition.Restrictions;
 import com.bobocode.petros.bibernate.transaction.Transaction;
@@ -65,5 +66,13 @@ public interface JdbcQueryManager {
      * @return instance of {@link Transaction}
      */
     Transaction getTransaction();
+
+    /**
+     * Executes DDL statement and return simple stats.
+     *
+     * @param sql sql to execute
+     * @return stats
+     */
+    DdlExecutionResult execute(final String sql);
 
 }

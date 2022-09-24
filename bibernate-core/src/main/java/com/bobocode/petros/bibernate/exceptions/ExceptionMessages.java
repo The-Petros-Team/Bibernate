@@ -15,4 +15,5 @@ public enum ExceptionMessages {
     public static final String TABLE_DOESNT_EXIST_MSG = "Table '%s' doesn't exist.";
     public static final String FIELD_DOESNT_EXIST_MSG = "Field '%s', doesn't exist in table '%s'";
     public static final String UNRESOLVABLE_PROPERTY_MESSAGE = "Can't resolve property '%s' in class '%s'";
+    public static final String CANNOT_EXECUTE_DDL_STATEMENT_MESSAGE = "Error occurred during the script execution. Script: '%s', details: %s";
 }

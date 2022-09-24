@@ -1,6 +1,8 @@
 package com.bobocode.petros.bibernate.session.jdbc;
 
+import com.bobocode.petros.bibernate.exceptions.ExceptionMessages;
 import com.bobocode.petros.bibernate.exceptions.JdbcOperationException;
+import com.bobocode.petros.bibernate.session.ddl.DdlExecutionResult;
 import com.bobocode.petros.bibernate.session.query.QueryHelper;
 import com.bobocode.petros.bibernate.session.query.QueryResult;
 import com.bobocode.petros.bibernate.session.query.condition.Restriction;
@@ -15,10 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -240,6 +239,44 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
     }
 
     /**
+     * {@inheritDoc}
+     *
+     * @param sql sql to execute
+     * @return stats
+     */
+    @Override
+    public DdlExecutionResult execute(final String sql) {
+        if (sql == null || sql.isBlank()) {
+            throw new IllegalArgumentException("Parameter [sql] must not be null or empty!");
+        }
+        return performWithTxReturning(connection -> executeDdl(connection, sql));
+    }
+
+    /**
+     * Runs DDL execution logic.
+     *
+     * @param connection connection
+     * @param sql        sql script
+     * @return stats
+     */
+    private DdlExecutionResult executeDdl(final Connection connection, final String sql) {
+        final DdlExecutionResult result = new DdlExecutionResult();
+        try (Statement statement = connection.createStatement()) {
+            final boolean hasResult = statement.execute(sql);
+            log.debug("Executed ddl statement: '{}'", sql);
+            if (!hasResult) {
+                result.addSuccess();
+                result.setMessage(String.format(DdlExecutionResult.SUCCESS_MSG, sql));
+            }
+            return result;
+        } catch (Exception e) {
+            result.addFailure();
+            result.setMessage(String.format(ExceptionMessages.CANNOT_EXECUTE_DDL_STATEMENT_MESSAGE, sql, e.getMessage()));
+            return result;
+        }
+    }
+
+    /**
      * Helper method that runs an operation by using an underlying connection choosing mechanism.
      * See {@link DefaultJdbcQueryManager#getConnection()}
      *
@@ -280,6 +317,5 @@ public class DefaultJdbcQueryManager implements JdbcQueryManager {
             throw new JdbcOperationException(e.getMessage(), e);
         }
         return Objects.requireNonNull(this.connection);
-
     }
 }

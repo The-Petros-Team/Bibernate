@@ -1,5 +1,6 @@
 package com.bobocode.petros.bibernate.session;
 
+import com.bobocode.petros.bibernate.session.ddl.DdlExecutionResult;
 import com.bobocode.petros.bibernate.transaction.Transaction;
 
 import java.util.Collection;
@@ -24,5 +25,13 @@ public interface Session {
     void flush();
 
     void close();
+
+    /**
+     * Executes DDL statement and return simple stats.
+     *
+     * @param sql sql to execute
+     * @return stats
+     */
+    DdlExecutionResult execute(final String sql);
 
 }
