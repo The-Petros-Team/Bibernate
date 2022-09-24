@@ -104,7 +104,7 @@ public class CacheableSession extends DefaultSession {
             log.debug("Found {} entities in persistence context for type - {}, where {}={}", cachedEntities.size(), type, propertyName, value);
             if (cachedEntities.isEmpty()) {
                 Collection<T> entityCollection = super.find(type, EntityUtils.resolveEntityColumnByPropertyName(type, propertyName), value);
-                log.debug("Found {} entities in DB of type - {}, where {}={}", cachedEntities.size(), type, propertyName, value);
+                log.debug("Found {} entities in DB of type - {}, where {}={}", entityCollection.size(), type, propertyName, value);
                 entityCollection.forEach(entity -> {
                     persistenceContext.addSnapshot(entity);
                     persistenceContext.addToCache(entity);
