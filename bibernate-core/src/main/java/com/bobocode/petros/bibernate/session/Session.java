@@ -34,4 +34,18 @@ public interface Session {
      */
     DdlExecutionResult execute(final String sql);
 
+    /**
+     * Returns a value of isFlushed flag.
+     *
+     * @return true if session flushed or false otherwise
+     */
+    boolean isFlushed();
+
+    /**
+     * Sets flushing flag.
+     *
+     * @param isFlushed isFlushed flag value
+     */
+    void setFlushed(boolean isFlushed);
+
 }

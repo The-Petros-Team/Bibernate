@@ -25,6 +25,7 @@ public class CacheableSession extends DefaultSession {
     private PersistenceContext persistenceContext;
     private ActionQueue actionQueue;
     private boolean isClosed;
+    private boolean isFlushed;
 
     public CacheableSession(JdbcQueryManager jdbcQueryManager) {
         super(jdbcQueryManager);
@@ -49,7 +50,7 @@ public class CacheableSession extends DefaultSession {
             } else {
                 var foundEntity = findById(entity.getClass(), entityId);
                 if (foundEntity.isPresent()) {
-                    log.debug("Entity already exist in DB. Updating cache...");
+                    log.debug("Entity already exists in DB. Updating cache...");
                     @SuppressWarnings("unchecked") T e = (T) foundEntity.get();
                     persistenceContext.addToCache(entity);
                     return e;
@@ -125,8 +126,14 @@ public class CacheableSession extends DefaultSession {
     @Override
     public <T> T update(T entity) {
         return executeWithIsClosedCheck(() -> {
-            log.debug("Updating entity: {}", entity);
-            var updatedEntity = getTransaction().isClosed() ? super.update(entity) : entity;
+            var updatedEntity = entity; // let's say update is put in queue by default
+            if (getTransaction().isClosed()) {
+                log.debug("Updating entity: {}", entity);
+                updatedEntity = super.update(entity);
+            } else {
+                var updateAction = new UpdateEntityAction(entity, this.jdbcQueryManager);
+                actionQueue.add(updateAction);
+            }
             persistenceContext.addToCache(updatedEntity);
             persistenceContext.addSnapshot(updatedEntity);
             return updatedEntity;
@@ -148,7 +155,6 @@ public class CacheableSession extends DefaultSession {
                 super.deleteById(type, id);
             } else {
                 var deleteAction = new DeleteEntityAction(type, id, jdbcQueryManager);
-                log.debug("Adding delete action {}", deleteAction);
                 actionQueue.add(deleteAction);
             }
             persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(type, id));
@@ -171,7 +177,6 @@ public class CacheableSession extends DefaultSession {
                 super.delete(entity);
             } else {
                 var deleteAction = new DeleteEntityAction(entity, jdbcQueryManager);
-                log.debug("Adding delete action {}", deleteAction);
                 actionQueue.add(deleteAction);
             }
             persistenceContext.removeEntityFromCacheByEntityKey(EntityUtils.createEntityKey(entity));
@@ -200,10 +205,16 @@ public class CacheableSession extends DefaultSession {
     @Override
     public void flush() {
         executeWithIsClosedCheck(() -> {
-            log.debug("Flush session changes to DB.");
-            persistenceContext.getChangedEntities()
-                    .forEach(e -> actionQueue.add(new UpdateEntityAction(e, jdbcQueryManager)));
-            actionQueue.processActions();
+            if (!isFlushed) {
+                log.debug("Flush session changes to DB.");
+                persistenceContext.getChangedEntities()
+                        .forEach(e -> actionQueue.add(new UpdateEntityAction(e, jdbcQueryManager)));
+                actionQueue.processActions();
+                isFlushed = true;
+            } else {
+                log.warn("Flush has been already performed! Skipping...");
+                isFlushed = false;
+            }
             return null;
         });
     }
@@ -221,6 +232,26 @@ public class CacheableSession extends DefaultSession {
             log.debug("Session closed.");
             return null;
         });
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return true if session flushed or false otherwise
+     */
+    @Override
+    public boolean isFlushed() {
+        return this.isFlushed;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param isFlushed isFlushed flag value
+     */
+    @Override
+    public void setFlushed(boolean isFlushed) {
+        this.isFlushed = isFlushed;
     }
 
     private <T> T executeWithIsClosedCheck(Supplier<T> supplier) {

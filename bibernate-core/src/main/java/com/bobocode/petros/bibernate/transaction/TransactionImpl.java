@@ -33,7 +33,7 @@ public class TransactionImpl implements Transaction {
         try {
             connection.setAutoCommit(false);
             this.isOpened = true;
-            log.trace("Transaction is started.");
+            log.debug("Transaction is started.");
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);
         }
@@ -46,13 +46,15 @@ public class TransactionImpl implements Transaction {
     public void commit() {
         try (connection) {
             if (!connection.getAutoCommit()) {
-                log.trace("Committing transaction.");
+                log.debug("Committing transaction.");
                 this.session.flush();
                 this.connection.commit();
             }
             this.isOpened = false;
         } catch (SQLException e) {
             throw new JdbcOperationException(e.getMessage(), e);
+        } finally {
+            this.session.setFlushed(false);
         }
     }
 
@@ -63,9 +65,9 @@ public class TransactionImpl implements Transaction {
     public void rollback() {
         try (connection) {
             if (!connection.getAutoCommit()) {
-                log.trace("Rolling back transaction.");
+                log.debug("Rolling back transaction.");
                 this.connection.rollback();
-                log.trace("Transaction is rolled back.");
+                log.debug("Transaction is rolled back.");
             }
             this.isOpened = false;
         } catch (SQLException e) {
