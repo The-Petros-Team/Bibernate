@@ -77,7 +77,7 @@ public class QueryHelper {
                     String.format(" %s %s", SqlOperator.WHERE.getValue(), EntityUtils.getMappedQueryColumns(entityClass, true))
             );
         }
-        log.debug("Built query for class- {}, query type - {}, restrictions - {}: {}", entityClass, queryType, restrictions, sql);
+        log.debug("Built query for class - {}, query type - {}, restrictions - {}: {}", entityClass, queryType, restrictions, sql);
         return sql;
     }
 }

@@ -5,12 +5,14 @@ import com.bobocode.petros.bibernate.annotations.Entity;
 import com.bobocode.petros.bibernate.annotations.Id;
 import com.bobocode.petros.bibernate.annotations.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "person", schema = "vromantsev")
+@EqualsAndHashCode(of = {"id", "firstName", "lastName"})
+@Table(name = "person", schema = "public")
 public class Person {
     
     @Id
